@@ -31,9 +31,3 @@
 ## Limitations
 - Shrink PDF Drops PDF Quality Drastically
 - Not Quite Mobile Friendly 
-
-## Screenshots
-- HomePage
-- ![Homepage](<img width="2848" height="1542" alt="Screenshot 2026-03-19 170404" src="https://github.com/user-attachments/assets/9856a6e3-b9b0-44a2-a79e-19b197bc569e" />)
-- Editor
-- ![Editor](<img width="2879" height="1533" alt="Screenshot 2026-03-19 170713" src="https://github.com/user-attachments/assets/daaf5fdd-58cf-49a8-b83a-02cab825b411" />)
