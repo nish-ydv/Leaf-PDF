@@ -1,6 +1,6 @@
-# PDF Scanner
+# Leaf PDF - Lightweight PDF Tools Suite
 
-A frontend-only web app for basic PDF operations inspired by tools like iLovePDF.
+> Free, privacy-first PDF tools that run entirely in your browser. No uploads, no tracking, no sign-ups.
 
  https://nish-ydv.github.io/Leaf-PDF/
 
@@ -11,14 +11,23 @@ A frontend-only web app for basic PDF operations inspired by tools like iLovePDF
 - Drag & drop file upload
 - Client-side processing (no server, privacy-friendly)
 
+## Features(v1.5)
+- Changed The UI/UX of The Website
+- Changed The Name To Leaf PDF
+- Added Split PDF
+- Added PDF Editor
+- Added Rotate Undo And Delete Tools in PDF Editor
+- Increased PDF Size Limit From 10MB to 50MB
+
 ## Tech Stack
-- HTML
 - CSS
-- JavaScript
+- HTML
+- Javascript
+- React
 - PDF-lib
 - PDF.js
 - Canvas API
 
 ## Limitations
-- Large PDFs may be slow
-- Compression quality trade-offs
+- Shrink PDF Drops PDF Quality Drastically
+- Not Quite Mobile Friendly 
