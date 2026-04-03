@@ -3,7 +3,6 @@ import { PDFDocument, degrees } from "pdf-lib"
 import * as pdfjsLib from 'pdfjs-dist'
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker
-import { Link } from "react-router-dom";
 import UploadZone from "../components/Edit/Upload";
 import LeftPanel from "../components/Edit/LeftPanel";
 import Canvas from "../components/Edit/Canvas";

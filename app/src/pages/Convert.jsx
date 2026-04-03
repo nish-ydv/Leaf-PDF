@@ -1,6 +1,34 @@
 import { useState, useRef } from 'react'
 import { PDFDocument } from 'pdf-lib'
+import {
+    DndContext
+} from "@dnd-kit/core"
 
+import {
+    SortableContext,
+    useSortable,
+    arrayMove,
+    verticalListSortingStrategy
+} from "@dnd-kit/sortable"
+
+import { CSS } from "@dnd-kit/utilities"
+function SortableItem({ file, removeFile, index }) {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: file.name });
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition
+    }
+    return (
+        <li ref={setNodeRef} style={style}>
+            <span {...attributes} {...listeners} style={{ cursor: "grab", marginRight: "10px" }}>
+                ≡
+            </span>
+            <span>🏞️</span>
+            {file.name} — {(file.size / 1024 / 1024).toFixed(2)}MB
+            <button className="remove-btn" onClick={() => removeFile(index)}>❌</button>
+        </li>
+    )
+}
 function Convert() {
     const [selectedFiles, setSelectedFiles] = useState([])
     const [message, setMessage] = useState('')
@@ -41,13 +69,22 @@ function Convert() {
 
         if (inputRef.current) inputRef.current.value = ''
     }
-
     function removeFile(index) {
         const newFiles = selectedFiles.filter((_, i) => i !== index)
         setSelectedFiles(newFiles)
         if (newFiles.length < 1) setMessage('Select at least 1 file')
     }
-
+    function handleDragEnd(event) {
+        const { active, over } = event;
+        if (!over) return;
+        if (active.id !== over.id) {
+            setSelectedFiles(prev => {
+                const oldIndex = prev.findIndex(f => f.name === active.id);
+                const newIndex = prev.findIndex(f => f.name === over.id);
+                return arrayMove(prev, oldIndex, newIndex)
+            })
+        }
+    }
     async function handleConvert() {
         setLoading(true)
         try {
@@ -80,7 +117,6 @@ function Convert() {
             setLoading(false)
         }
     }
-
     function downloadPDF(bytes) {
         const blob = new Blob([bytes], { type: 'application/pdf' })
         const url = URL.createObjectURL(blob)
@@ -92,9 +128,7 @@ function Convert() {
         document.body.removeChild(a)
         URL.revokeObjectURL(url)
     }
-
     const canConvert = selectedFiles.length >= 1 && !loading
-
     return (
         <main className="tool-page">
             <div className="tool-header">
@@ -102,7 +136,6 @@ function Convert() {
                 <h1 className="tool-h1">Image to PDF</h1>
                 <p className="tool-sub">Convert JPG or PNG images into a high-quality PDF file. Perfect for scanned notes and photos.</p>
             </div>
-
             <div
                 className={`upload-zone${isDragging ? ' drag-over' : ''}`}
                 onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
@@ -132,20 +165,24 @@ function Convert() {
                     · JPG and PNG only · Max 50MB each · Nothing uploaded
                 </div>
             </div>
-
             {message && <p className="msg-error">{message}</p>}
-
             {selectedFiles.length > 0 && (
                 <div id="preview-con">
-                    <ul>
-                        {selectedFiles.map((file, index) => (
-                            <li key={index}>
-                                <span>🏞️</span>
-                                {file.name} — {(file.size / 1024 / 1024).toFixed(2)}MB
-                                <button className="remove-btn" onClick={() => removeFile(index)}>❌</button>
-                            </li>
-                        ))}
-                    </ul>
+                    <DndContext onDragEnd={handleDragEnd}>
+                        <SortableContext
+                            items={selectedFiles.map(f => f.name)}
+                            strategy={verticalListSortingStrategy}>
+                            <ul>
+                                {selectedFiles.map((file, index) => (
+                                    <SortableItem
+                                        key={file.name}
+                                        file={file}
+                                        index={index}
+                                        removeFile={removeFile} />
+                                ))}
+                            </ul>
+                        </SortableContext>
+                    </DndContext>
                 </div>
             )}
 

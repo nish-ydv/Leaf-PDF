@@ -1,6 +1,34 @@
 import { useState, useRef } from 'react'
 import { PDFDocument } from 'pdf-lib'
+import {
+    DndContext
+} from "@dnd-kit/core"
 
+import {
+    SortableContext,
+    useSortable,
+    arrayMove,
+    verticalListSortingStrategy
+} from "@dnd-kit/sortable"
+
+import { CSS } from "@dnd-kit/utilities"
+
+function SortableItem({ file, removeFile, index, }) {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: file.name });
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition
+    }
+    return (
+        <li ref={setNodeRef} style={style}>
+            <span {...attributes} {...listeners} style={{ cursor: "grab", marginRight: "10px" }}>
+                ≡
+            </span>
+            {file.name} — {(file.size / 1024 / 1024).toFixed(2)}MB
+            <button className="remove-btn" onClick={() => removeFile(index)}>❌</button>
+        </li>
+    )
+}
 function Merge() {
     const [selectedFiles, setSelectedFiles] = useState([])
     const [message, setMessage] = useState('')
@@ -8,7 +36,6 @@ function Merge() {
     const [loading, setLoading] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
     const inputRef = useRef(null)
-
     function handleFiles(files) {
         let hasError = false
         const newFiles = [...selectedFiles]
@@ -41,7 +68,17 @@ function Merge() {
 
         if (inputRef.current) inputRef.current.value = ''
     }
-
+    function handleDragEnd(event) {
+        const { active, over } = event;
+        if (!over) return;
+        if (active.id !== over.id) {
+            setSelectedFiles(prev => {
+                const oldIndex = prev.findIndex(f => f.name === active.id);
+                const newIndex = prev.findIndex(f => f.name === over.id);
+                return arrayMove(prev, oldIndex, newIndex)
+            })
+        }
+    }
     function removeFile(index) {
         const newFiles = selectedFiles.filter((_, i) => i !== index)
         setSelectedFiles(newFiles)
@@ -134,14 +171,21 @@ function Merge() {
 
                 {selectedFiles.length > 0 && (
                     <div id="preview">
-                        <ul>
-                            {selectedFiles.map((file, index) => (
-                                <li key={index}>
-                                    {file.name} — {(file.size / 1024 / 1024).toFixed(2)}MB
-                                    <button className="remove-btn" onClick={() => removeFile(index)}>❌</button>
-                                </li>
-                            ))}
-                        </ul>
+                        <DndContext onDragEnd={handleDragEnd}>
+                            <SortableContext
+                                items={selectedFiles.map(f => f.name)}
+                                strategy={verticalListSortingStrategy}>
+                                <ul>
+                                    {selectedFiles.map((file, index) => (
+                                        <SortableItem
+                                            key={file.name}
+                                            file={file}
+                                            index={index}
+                                            removeFile={removeFile} />
+                                    ))}
+                                </ul>
+                            </SortableContext>
+                        </DndContext>
                     </div>
                 )}
 

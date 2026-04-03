@@ -302,6 +302,8 @@ button.tb-btn.danger:hover:not(:disabled) {
 }
 
 .mobile-page-nav button:disabled {
+    position: relative;
+    z-index: 10;
     opacity: 0.3;
     cursor: not-allowed;
 }
