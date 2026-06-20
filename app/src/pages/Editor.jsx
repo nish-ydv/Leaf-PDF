@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { PDFDocument, degrees } from "pdf-lib"
+import { useEffect, useState } from "react";
+import { PDFDocument, degrees, rgb } from "pdf-lib"
 import * as pdfjsLib from 'pdfjs-dist'
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker
@@ -7,13 +7,85 @@ import UploadZone from "../components/Edit/Upload";
 import LeftPanel from "../components/Edit/LeftPanel";
 import Canvas from "../components/Edit/Canvas";
 import Toolbar from "../components/Edit/Toolbar";
+import RightPanel from "../components/Edit/RightPanel";
+import SignaturePad from "../components/Edit/SignaturePad";
+import {
+    arrayMove,
+} from "@dnd-kit/sortable"
+import { ServerCog } from "lucide-react";
 function Editor() {
     const [pdfDoc, setPdfDoc] = useState(null);
     const [pdfBytes, setPdfBytes] = useState(null);
     const [fileName, setFileName] = useState('');
     const [pages, setPages] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
-    const [history, setHistory] = useState([])
+    const [history, setHistory] = useState([]);
+    const [textBoxes, setTextBoxes] = useState([]);
+    const [activeTool, setActiveTool] = useState('select');
+    const [selectedTextBox, setSelectedTextBox] = useState(null);
+    const [showColorPicker, setShowColorPicker] = useState(null);
+    const [draggingId, setDraggingId] = useState(null);
+    const [signatures, setSignatures] = useState([]);
+    const [showSignaturePad, setShowSignaturePad] = useState(false);
+    const [signatureImage, setSignatureImage] = useState(null);
+    const [selectedSignature, setSelectedSignature] = useState(null);
+    useEffect(() => {
+        function handleKeyDown(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault()
+                undo()
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault()
+                savePDF()
+            }
+            if (e.key === 't' && !e.ctrlKey && e.target.tagName !== 'INPUT') {
+                setActiveTool(prev => prev === 'text' ? 'select' : 'text')
+            }
+            if (e.key === 'Escape') {
+                setActiveTool('select')
+            }
+            if (e.key === 'Delete' && e.target.tagName !== 'Input') {
+                deletePage()
+            }
+            if (selectedTextBox) {
+                const box = textBoxes.find(b => b.id === selectedTextBox);
+                if (e.key === ']') {
+                    e.preventDefault();
+                    updateFontSize(box.id, box.fontSize + 2);
+                }
+                if (e.key === '[') {
+                    e.preventDefault();
+                    updateFontSize(box.id, box.fontSize - 2);
+                }
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [pages, textBoxes, history, currentPage])
+    function handleReorder(event) {
+        const { active, over } = event
+        if (!over) return
+        const oldIndex = pages.findIndex(p => p.id === active.id)
+        const newIndex = pages.findIndex(p => p.id === over.id)
+        if (oldIndex === newIndex) return
+        setHistory(h => [
+            ...h,
+            {
+                pages,
+                textBoxes,
+                signatures,
+            },
+        ]);
+        setPages(prev => arrayMove(prev, oldIndex, newIndex));
+        if (currentPage === oldIndex) {
+            setCurrentPage(newIndex)
+        } else if (oldIndex < currentPage && newIndex >= currentPage) {
+            setCurrentPage(prev => prev - 1)
+        } else if (oldIndex > currentPage && newIndex <= currentPage) {
+            setCurrentPage(prev => prev + 1)
+        }
+    }
     async function handleFile(file) {
         try {
             const buffer = await file.arrayBuffer();
@@ -34,7 +106,7 @@ function Editor() {
         }
     }
     function rotateCW() {
-        setHistory(h => [...h, pages])
+        setHistory(h => [...h, { pages, textBoxes, signatures }])
         setPages(prev => prev.map((p, i) =>
             i === currentPage
                 ? { ...p, rotation: (p.rotation + 90) % 360 }
@@ -42,7 +114,7 @@ function Editor() {
         ))
     }
     function rotateCCW() {
-        setHistory(h => [...h, pages])
+        setHistory(h => [...h, { pages, textBoxes, signatures }])
         setPages(prev => prev.map((p, i) =>
             i === currentPage
                 ? { ...p, rotation: (p.rotation + 270) % 360 }
@@ -50,7 +122,7 @@ function Editor() {
         ))
     }
     function deletePage() {
-        setHistory(h => [...h, pages])
+        setHistory(h => [...h, { pages, textBoxes, signatures }])
         setPages(prev => prev.map((p, i) =>
             i === currentPage ? { ...p, deleted: true } : p
         ))
@@ -63,29 +135,170 @@ function Editor() {
     }
     function undo() {
         if (!history.length) return
-        setPages(history[history.length - 1])
+        const last = history[history.length - 1]
+        setPages(last.pages)
+        setTextBoxes(last.textBoxes)
+        setSignatures(last.signatures)
         setHistory(h => h.slice(0, -1))
+    }
+    function updateFontSize(id, size) {
+        setTextBoxes(prev =>
+            prev.map(box =>
+                box.id === id
+                    ? { ...box, fontSize: Math.max(8, size) }
+                    : box
+            )
+        );
+    }
+    function deleteTextBox(id) {
+        setHistory(h => [
+            ...h,
+            {
+                pages,
+                textBoxes,
+                signatures,
+            },
+        ]);
+        setTextBoxes(prev =>
+            prev.filter(box => box.id !== id)
+        );
+        setSelectedTextBox(null);
+    }
+    function updateColor(id, color) {
+        setTextBoxes(prev =>
+            prev.map(box =>
+                box.id === id ? { ...box, color: color } : box
+            )
+        )
+    }
+    function updatePosition(id, x, y) {
+        setTextBoxes(prev =>
+            prev.map(box =>
+                box.id === id ? { ...box, x, y } : box
+            )
+        )
+    }
+    function duplicateTextBox(id) {
+        setHistory(h => [...h, { pages, textBoxes }]);
+        const box = textBoxes.find(b => b.id === id);
+        if (!box) return;
+        const newid = Date.now() + Math.random()
+        setTextBoxes(prev => [
+            ...prev,
+            {
+                ...box,
+                id: newid,
+                x: box.x + 20,
+                y: box.y + 20,
+            },
+        ]);
+        setSelectedTextBox(newid)
+    }
+    function addSignature(signature) {
+        setHistory(h => [
+            ...h,
+            {
+                pages,
+                textBoxes,
+                signatures,
+            }
+        ])
+        setSignatures(prev => [...prev, signature])
+    }
+    function updateSignaturePosition(id, x, y) {
+        setSignatures(prev =>
+            prev.map(sig =>
+                sig.id === id ? { ...sig, x, y } : sig
+            )
+        );
+    }
+    function updateSignatureSize(id, width, height) {
+        setSignatures(prev =>
+            prev.map(sig =>
+                sig.id === id ? { ...sig, width, height } : sig
+            )
+        );
+    }
+    function deleteSignature(id) {
+        setHistory(h => [
+            ...h,
+            {
+                pages,
+                textBoxes,
+                signatures,
+            },
+        ]);
+
+        setSignatures(prev =>
+            prev.filter(sig => sig.id !== id)
+        );
+
+        setSelectedSignature(null);
+    }
+    function hexToRgb(hex) {
+        hex = hex.replace("#", "");
+        const r = parseInt(hex.substring(0, 2), 16) / 255;
+        const g = parseInt(hex.substring(2, 4), 16) / 255;
+        const b = parseInt(hex.substring(4, 6), 16) / 255;
+        return rgb(r, g, b);
     }
     async function savePDF() {
         if (!pdfBytes) return;
-        const doc = await PDFDocument.load(pdfBytes);
-        const pdfPages = doc.getPages();
-        pages.forEach((page, i) => {
-            if (page.rotation !== 0) {
-                pdfPages[i].setRotation(degrees(page.rotation));
+        const srcDoc = await PDFDocument.load(pdfBytes);
+        const newDoc = await PDFDocument.create();
+        const canvasScale = 1.5;
+        for (let i = 0; i < pages.length; i++) {
+            const pageMeta = pages[i];
+            if (pageMeta.deleted) continue;
+            const [copiedPage] = await newDoc.copyPages(srcDoc, [pageMeta.id - 1]);
+            if (pageMeta.rotation !== 0) {
+                copiedPage.setRotation(degrees(pageMeta.rotation));
             }
-        })
-        const deletedIndices = pages
-            .map((page, i) => page.deleted ? i : -1)
-            .filter(i => i !== -1)
-            .reverse()
-        deletedIndices.forEach(i => doc.removePage(i))
-        const savedBytes = await doc.save()
+            const pageHeight = copiedPage.getHeight();
+            const pageTextBoxes = textBoxes.filter(
+                box => box.pageIndex === i
+            );
+            const pageSignatures = signatures.filter(
+                sig => sig.pageIndex === i
+            );
+            pageTextBoxes
+                .filter(box => box.text.trim() !== "")
+                .forEach(box => {
+                    const lines = box.text.split("\n");
+
+                    lines.forEach((line, index) => {
+                        copiedPage.drawText(line, {
+                            x: box.x / canvasScale,
+                            y:
+                                pageHeight -
+                                (box.y / canvasScale) -
+                                (index * (box.fontSize * 1.2 / canvasScale)),
+                            size: box.fontSize / canvasScale,
+                            color: hexToRgb(box.color),
+                        });
+                    });
+                });
+            for(const sig of pageSignatures){
+                const png = await newDoc.embedPng(sig.image);
+                copiedPage.drawImage(png, {
+                    x: sig.x / canvasScale,
+                    y:
+                        pageHeight -
+                        (sig.y/canvasScale)-
+                        (sig.height/canvasScale),
+                    width: sig.width/ canvasScale,
+                    height: sig.height/ canvasScale,
+                });
+            }
+            newDoc.addPage(copiedPage);
+        }
+        const savedBytes = await newDoc.save()
         const blob = new Blob([savedBytes], { type: "application/pdf" })
         const url = URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
-        a.download = "edited.pdf"
+        const baseName = fileName.replace(/\.pdf$/i, "");
+        a.download = `${baseName}-edited.pdf`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
@@ -101,9 +314,6 @@ function Editor() {
                         fileName={fileName}
                         canUndo={history.length > 0}
                         onUndo={undo}
-                        onRotateCW={rotateCW}
-                        onRotateCCW={rotateCCW}
-                        onDelete={deletePage}
                         onSave={savePDF}
                         isLoaded={pages.length > 0}
                     />
@@ -113,14 +323,65 @@ function Editor() {
                             currentPage={currentPage}
                             pdfDoc={pdfDoc}
                             onSelect={setCurrentPage}
+                            onReorder={handleReorder}
                         />
                         <Canvas
                             pdfDoc={pdfDoc}
                             pages={pages}
                             currentPage={currentPage}
                             onPageChange={setCurrentPage}
+                            activeTool={activeTool}
+                            textBoxes={textBoxes}
+                            onAddTextBox={(box) => {
+                                setHistory(h => [...h, { pages, textBoxes, signatures }])
+                                setTextBoxes(prev => [...prev, box])
+                            }
+                            }
+                            onUpdateTextBox={(id, text) => setTextBoxes(prev =>
+                                prev.map(b => b.id === id ? { ...b, text } : b)
+                            )}
+                            onSetActiveTool={setActiveTool}
+                            selectedTextBox={selectedTextBox}
+                            setSelectedTextBox={setSelectedTextBox}
+                            onUpdateFontSize={updateFontSize}
+                            onDeleteTextBox={deleteTextBox}
+                            onUpdateColor={updateColor}
+                            showColorPicker={showColorPicker}
+                            setShowColorPicker={setShowColorPicker}
+                            draggingId={draggingId}
+                            setDraggingId={setDraggingId}
+                            onUpdatePosition={updatePosition}
+                            duplicateTextBox={duplicateTextBox}
+                            signatureImage={signatureImage}
+                            signatures={signatures}
+                            onAddSignature={addSignature}
+                            selectedSignature={selectedSignature}
+                            setSelectedSignature={setSelectedSignature}
+                            updateSignaturePosition={updateSignaturePosition}
+                            updateSignatureSize={updateSignatureSize}
+                            deleteSignature={deleteSignature}
+                        />
+                        <RightPanel
+                            onRotateCW={rotateCW}
+                            onRotateCCW={rotateCCW}
+                            onDelete={deletePage}
+                            isLoaded={pages.length > 0}
+                            activeTool={activeTool}
+                            onSetActiveTool={setActiveTool}
+                            pages={pages}
+                            currentPage={currentPage}
+                            showSignaturePad={showSignaturePad}
+                            setShowSignaturePad={setShowSignaturePad}
                         />
                     </div>
+                    {showSignaturePad && (
+                        <SignaturePad
+                            onClose={() => setShowSignaturePad(false)}
+                            signatureImage={signatureImage}
+                            setSignatureImage={setSignatureImage}
+                            setActiveTool={setActiveTool}
+                        />
+                    )}
                 </>
             )
             }

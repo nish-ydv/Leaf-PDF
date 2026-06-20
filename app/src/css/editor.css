@@ -302,8 +302,6 @@ button.tb-btn.danger:hover:not(:disabled) {
 }
 
 .mobile-page-nav button:disabled {
-    position: relative;
-    z-index: 10;
     opacity: 0.3;
     cursor: not-allowed;
 }
@@ -341,4 +339,150 @@ button.tb-btn.danger:hover:not(:disabled) {
         font-size: 14px;
         background: var(--cream-2);
     }
+}
+.page-thumb span {
+    display: inline-block;
+    padding: 8px;
+    font-size: 18px;
+}
+.tb-btn.active {
+    background: var(--green-dim);
+    color: var(--forest);
+}
+.right-panel{
+    width: 200px;
+    background: var(--white);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+}
+.rpanel-section{
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+}
+.rpanel-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 10px;
+}
+.rpanel-btn {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--cream);
+    color: var(--ink-3);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.12s;
+    margin-bottom: 6px;
+    text-align: left;
+}
+.rpanel-btn:hover:not(:disabled) {
+    border-color: var(--forest);
+    background: var(--green-dim);
+    color: var(--forest);
+}
+.rpanel-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+.rpanel-btn.active {
+    border-color: var(--forest);
+    background: var(--green-dim);
+    color: var(--forest);
+}
+.rpanel-btn.danger:hover:not(:disabled) {
+    border-color: #dc2626;
+    background: rgba(220,38,38,0.08);
+    color: #dc2626;
+}
+.signature-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+.signature-modal{
+    background:#1c1917;
+    padding:24px;
+    border-radius:12px;
+    border:1px solid #333;
+}
+.signature-canvas{
+    background:white;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+.signature-actions{
+    margin-top:16px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+}
+.font-toolbar {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    display: flex;
+    gap: 4px;
+    background: #1c1917;
+    padding: 4px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    color: white;
+    z-index: 1000;
+}
+
+.font-toolbar button {
+    background: #666;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background .15s;
+}
+
+.font-toolbar button:hover {
+    background: #888;
+}
+
+.font-toolbar span {
+    color: white;
+    min-width: 26px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drag-handle {
+    cursor: grab;
+    padding: 0 6px;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
 }
