@@ -21,7 +21,7 @@
 
 ## Features(v2.0)
 
-# Text Editing
+### Text Editing
 - Add text anywhere on the page
 - Multiline text support
 - Auto-growing text boxes
@@ -31,7 +31,7 @@
 - Delete text boxes
 - Keyboard shortcuts
 
-# Signature Tool
+### Signature Tool
 - Draw signatures directly in the browser
 - Save signatures instantly
 - Place signatures anywhere on the PDF
@@ -39,7 +39,7 @@
 - Resize signatures
 - Delete signatures
 
-# Editor Improvements
+### Editor Improvements
 - Page reordering
 - Undo support for editor actions
 - Save edited PDFs
