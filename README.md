@@ -19,14 +19,43 @@
 - Added Rotate Undo And Delete Tools in PDF Editor
 - Increased PDF Size Limit From 10MB to 50MB
 
+## Features(v2.0)
+
+# Text Editing
+- Add text anywhere on the page
+- Multiline text support
+- Auto-growing text boxes
+- Adjustable font size
+- Text color picker
+- Drag text anywhere
+- Delete text boxes
+- Keyboard shortcuts
+
+# Signature Tool
+- Draw signatures directly in the browser
+- Save signatures instantly
+- Place signatures anywhere on the PDF
+- Drag signatures
+- Resize signatures
+- Delete signatures
+
+# Editor Improvements
+- Page reordering
+- Undo support for editor actions
+- Save edited PDFs
+- Improved editor layout with dedicated tools panel
+
 ## Tech Stack
-- CSS
-- HTML
-- Javascript
 - React
+- JavaScript
+- HTML5
+- CSS3
 - PDF-lib
 - PDF.js
 - Canvas API
+- react-signature-canvas
+- react-colorful
+- dnd-kit
 
 ## Limitations
 - Shrink PDF Drops PDF Quality Drastically
