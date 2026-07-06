@@ -45,6 +45,10 @@
 - Save edited PDFs
 - Improved editor layout with dedicated tools panel
 
+## Features(v2.5)
+- Added Extract Pages tool
+- Added Extract Images tool
+- Added Extract Text tool
 ## Tech Stack
 - React
 - JavaScript
