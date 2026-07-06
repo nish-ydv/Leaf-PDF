@@ -20,12 +20,16 @@ function Home() {
         { name: 'Split PDF', desc: 'Split into two PDFs at any page', icon: '✂️', category: 'organize', path: '/split', badge: 'Live', badgeClass: 'badge-live' },
         { name: 'Image to PDF', desc: 'Convert JPG or PNG to PDF', icon: '🖼', category: 'convert', path: '/convert', badge: 'Live', badgeClass: 'badge-live' },
         { name: 'Compress PDF', desc: 'Shrink file size without quality loss', icon: '📦', category: 'optimize', path: '/shrink', badge: 'Live', badgeClass: 'badge-live' },
+        { name: 'Extract Pages', desc: 'Extract pages from pdf', icon: '📄', category: 'extract', path: '/extract/pages', badge: 'Live', badgeClass: 'badge-live'},
+        { name: 'Extract Images', desc: 'Extract images from pdf', icon: '🖼️', category: 'extract', path: '/extract/images', badge: 'Live', badgeClass: 'badge-live'},
+        { name: 'Extract Text', desc: 'Extract text from pdf', icon: '📝', category: 'extract', path: '/extract/text', badge: 'Live', badgeClass: 'badge-live'},
     ]
 
     const categories = [
         { id: 'organize', name: 'Organize', desc: 'Manage and rearrange pages' },
         { id: 'convert', name: 'Convert', desc: 'PDF to and from other formats' },
         { id: 'optimize', name: 'Optimize', desc: 'Reduce size and improve quality' },
+        { id: 'extract', name: 'Extract', desc: 'Extract pages, images and text'}
     ]
 
     const filteredTools = tools.filter(tool => {
@@ -63,7 +67,7 @@ function Home() {
                     </div>
                     <div className="hero-stat">
                         <div className="stat">
-                            <span className="stat-num hero-green">5</span>
+                            <span className="stat-num hero-green">8</span>
                             <span className="stat-label">Current tools</span>
                         </div>
                         <div className="stat">
@@ -115,7 +119,7 @@ function Home() {
                         />
                     </div>
                     <div className="filter-chips">
-                        {['all', 'organize', 'convert', 'optimize'].map(f => (
+                        {['all', 'organize', 'convert', 'optimize', 'extract'].map(f => (
                             <button
                                 key={f}
                                 className={`chip ${filter === f ? 'active' : ''}`}
