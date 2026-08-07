@@ -49,6 +49,15 @@
 - Added Extract Pages tool
 - Added Extract Images tool
 - Added Extract Text tool
+
+## Features(V3.0)
+- Added Lock PDF Tool
+- Added Unlock PDF Tool
+- Added Text And Image Watermark To PDF Editor
+- Can Change Watermark Opacity And Position
+- Apply Watermark To Current Or All Pages
+- Remove Watermarks
+  
 ## Tech Stack
 - React
 - JavaScript
