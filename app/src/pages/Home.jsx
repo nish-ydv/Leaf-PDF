@@ -23,13 +23,16 @@ function Home() {
         { name: 'Extract Pages', desc: 'Extract pages from pdf', icon: '📄', category: 'extract', path: '/extract/pages', badge: 'Live', badgeClass: 'badge-live'},
         { name: 'Extract Images', desc: 'Extract images from pdf', icon: '🖼️', category: 'extract', path: '/extract/images', badge: 'Live', badgeClass: 'badge-live'},
         { name: 'Extract Text', desc: 'Extract text from pdf', icon: '📝', category: 'extract', path: '/extract/text', badge: 'Live', badgeClass: 'badge-live'},
+        { name: 'Lock PDF', desc: 'Lock PDF by password', icon: '🔒', category: 'security', path: '/security/lock', badge: 'Live', badgeClass: 'badge-live'},
+        { name: 'Unlock PDF', desc: 'Unlock PDF using password', icon: '🔓', category: 'security', path: '/security/unlock', badge: 'Live', badgeClass: 'badge-live'},
     ]
 
     const categories = [
         { id: 'organize', name: 'Organize', desc: 'Manage and rearrange pages' },
         { id: 'convert', name: 'Convert', desc: 'PDF to and from other formats' },
         { id: 'optimize', name: 'Optimize', desc: 'Reduce size and improve quality' },
-        { id: 'extract', name: 'Extract', desc: 'Extract pages, images and text'}
+        { id: 'extract', name: 'Extract', desc: 'Extract pages, images and text'},
+        { id: 'security', name: 'Security', desc: 'Lock and Unlock PDFs'},
     ]
 
     const filteredTools = tools.filter(tool => {
@@ -67,7 +70,7 @@ function Home() {
                     </div>
                     <div className="hero-stat">
                         <div className="stat">
-                            <span className="stat-num hero-green">8</span>
+                            <span className="stat-num hero-green">10</span>
                             <span className="stat-label">Current tools</span>
                         </div>
                         <div className="stat">
@@ -85,7 +88,7 @@ function Home() {
                 <section className="trust-bar">
                     <div className="trust-item"><span>🍃</span>Local Processing Only</div>
                     <div className="trust-item"><span>🍃</span>No Sign Up Needed</div>
-                    <div className="trust-item"><span>🍃</span>Always Free</div>
+                    <div className="trust-item"><span>🍃</span>Free</div>
                     <div className="trust-item"><span>🍃</span>Works Offline</div>
                 </section>
                 <section className="editor-banner">
@@ -119,7 +122,7 @@ function Home() {
                         />
                     </div>
                     <div className="filter-chips">
-                        {['all', 'organize', 'convert', 'optimize', 'extract'].map(f => (
+                        {['all', 'organize', 'convert', 'optimize', 'extract','security'].map(f => (
                             <button
                                 key={f}
                                 className={`chip ${filter === f ? 'active' : ''}`}

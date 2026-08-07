@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HexColorPicker } from "react-colorful"
 
 function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxes, onAddTextBox, onUpdateTextBox, onSetActiveTool,
     selectedTextBox, setSelectedTextBox, onUpdateFontSize, onDeleteTextBox, onUpdateColor, showColorPicker, setShowColorPicker,
     draggingId, setDraggingId, onUpdatePosition, duplicateTextBox, signatureImage, signatures, onAddSignature, selectedSignature, setSelectedSignature,
-    updateSignaturePosition, updateSignatureSize, deleteSignature
+    updateSignaturePosition, updateSignatureSize, deleteSignature, watermarkType, watermarkText, watermarkImage, watermarkOpacity, watermarkPosition, watermarkApplyTo,
+    applyWatermark, watermarks, setWatermarks, setSelectedWatermark, selectedWatermark
 }) {
     const canvasRef = useRef(null);
     useEffect(() => {
@@ -24,6 +25,69 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
         render()
         return () => { if (renderTask) renderTask.cancel() }
     }, [pdfDoc, currentPage, pages[currentPage]?.rotation, pages[currentPage]?.id])
+    useEffect(() => {
+        applyWatermarkToCanvas();
+    }, [applyWatermark])
+    function applyWatermarkToCanvas() {
+        if (watermarkType === "text" && !watermarkText.trim()) {
+            return;
+        }
+        else if (watermarkType === "image" && !watermarkImage) {
+            return;
+        }
+        const watermark = {
+            id: crypto.randomUUID(),
+            pageIndex: currentPage,
+            allPages: watermarkApplyTo === "all",
+            type: watermarkType,
+            text: watermarkText,
+            image: watermarkImage,
+            opacity: watermarkOpacity,
+            position: watermarkPosition,
+        }
+        setWatermarks(prev => [...prev, watermark])
+    }
+    function getWatermarkPosition(position) {
+        switch (position) {
+            case "center":
+                return {
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                };
+
+            case "top-left":
+                return {
+                    top: "20px",
+                    left: "20px",
+                };
+
+            case "top-right":
+                return {
+                    top: "20px",
+                    right: "20px",
+                };
+
+            case "bottom-left":
+                return {
+                    bottom: "20px",
+                    left: "20px",
+                };
+
+            case "bottom-right":
+                return {
+                    bottom: "20px",
+                    right: "20px",
+                };
+
+            default:
+                return {
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                };
+        }
+    }
     function handleCanvasClick(e) {
         setSelectedTextBox(null);
         const canvas = canvasRef.current;
@@ -396,6 +460,44 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                                 }}
                                             />
                                         </>
+                                    )}
+                                </div>
+                            ))
+                        }
+                        {watermarks
+                            .filter(water =>
+                                water.allPages ||
+                                water.pageIndex === currentPage
+                            )
+                            .map(water => (
+                                <div
+                                    key={water.id}
+                                    className="watermark"
+                                    onClick={() => {
+                                        console.log("Clicked:", water.id);
+                                        setSelectedWatermark(water.id);
+                                    }}
+                                    style={{
+                                        opacity: water.opacity / 100,
+                                        position: "absolute",
+                                        border:
+                                            selectedWatermark === water.id
+                                                ? "2px solid #2d6a3f"
+                                                : "none",
+                                        borderRadius: "6px",
+                                        ...getWatermarkPosition(water.position),
+                                    }}
+                                >
+                                    {water.type === "text" ? (
+                                        <span className="watermark-text">
+                                            {water.text}
+                                        </span>
+                                    ) : (
+                                        <img
+                                            src={URL.createObjectURL(water.image)}
+                                            className="watermark-image"
+                                            alt=""
+                                        />
                                     )}
                                 </div>
                             ))

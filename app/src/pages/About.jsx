@@ -17,7 +17,7 @@ function About() {
 
                 <div className="about-stats">
                     <div className="about-stat">
-                        <div className="about-stat-num">8</div>
+                        <div className="about-stat-num">10</div>
                         <div className="about-stat-label">Current tools</div>
                     </div>
                     <div className="about-stat">

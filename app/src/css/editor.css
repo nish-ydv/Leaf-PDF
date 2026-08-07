@@ -719,3 +719,122 @@ button.tb-btn.danger:hover:not(:disabled) {
         transform: translateY(0);
     }
 }
+.password-section{
+    width: 100%;
+    max-width: 720px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.password-input{
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: white;
+    border: var(--border-2);
+    color: #181818;
+    font-size: 16px;
+    outline: none;
+}
+.password-input:focus{
+    border-color: #2f7d44;
+}
+.watermark-options{
+    margin-top:14px;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    background:#fafafa;
+    border:1px solid #dddddd;
+    border-radius:12px;
+}
+.watermark-type-selector{
+    display:flex;
+    gap:10px;
+}
+
+.watermark-type-btn{
+    flex:1;
+    padding:10px 12px;
+    border:1px solid #d8d8d8;
+    border-radius:10px;
+    background:#ffffff;
+    color:#444;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all .2s ease;
+}
+
+.watermark-type-btn:hover{
+    border-color:#2d6a3f;
+    background:#f4faf6;
+}
+
+.watermark-type-btn.active{
+    background:#2d6a3f;
+    color:#fff;
+    border-color:#2d6a3f;
+}
+.watermark-options input[type="text"],
+.watermark-options input[type="file"],
+.watermark-options select{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid #d8d8d8;
+    border-radius:10px;
+    background:#fff;
+    color:#222;
+    font-size:14px;
+    outline:none;
+    box-sizing:border-box;
+}
+
+.watermark-options input[type="text"]:focus,
+.watermark-options select:focus{
+    border-color:#2d6a3f;
+    box-shadow:0 0 0 2px rgba(45,106,63,.15);
+}
+.opacity-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.opacity-value{
+    color:#2d6a3f;
+    font-size:13px;
+    font-weight:600;
+}
+
+.opacity-slider{
+    width:100%;
+    cursor:pointer;
+    accent-color:#2d6a3f;
+}
+.watermark-options .rpanel-btn{
+    width:100%;
+    margin-top:6px;
+}
+.watermark-options hr{
+    border:none;
+    border-top:1px solid #e6e6e6;
+    margin:2px 0;
+}
+.watermark{
+    z-index:30;
+}
+
+.watermark-text{
+    font-size:42px;
+    font-weight:700;
+    color:#444;
+    white-space:nowrap;
+}
+
+.watermark-image{
+    max-width:180px;
+    max-height:180px;
+}

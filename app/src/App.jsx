@@ -12,6 +12,8 @@ import Editor from './pages/Editor'
 import ExtractPages from './pages/extract/ExtractPages'
 import ExtractImages from './pages/extract/ExtractImages'
 import ExtractText from './pages/extract/ExtractText'
+import LockPDF from './pages/security/Lock'
+import UnlockPDF from './pages/security/Unlock'
 import './css/style.css'
 import './css/tools.css'
 import './css/index.css'
@@ -32,6 +34,8 @@ function Layout() {
         <Route path='/extract/pages' element={<ExtractPages />}/>
         <Route path='/extract/images' element={<ExtractImages/>}/>
         <Route path='/extract/text' element={<ExtractText/>}/>
+        <Route path='/security/lock' element={<LockPDF/>}/>
+        <Route path='/security/unlock' element={<UnlockPDF/>}/>
       </Routes>
       <Footer />
     </>

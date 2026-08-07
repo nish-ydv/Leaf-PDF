@@ -29,6 +29,15 @@ function Editor() {
     const [showSignaturePad, setShowSignaturePad] = useState(false);
     const [signatureImage, setSignatureImage] = useState(null);
     const [selectedSignature, setSelectedSignature] = useState(null);
+    const [watermarkType, setWatermarkType] = useState("text");
+    const [watermarkText, setWatermarkText] = useState("");
+    const [watermarkImage, setWatermarkImage] = useState(null);
+    const [watermarkOpacity, setWatermarkOpacity] = useState(30);
+    const [watermarkPosition, setWatermarkPosition] = useState("center");
+    const [watermarkApplyTo, setWatermarkApplyTo] = useState("current");
+    const [applyWatermark, setApplyWatermark] = useState(0);
+    const [selectedWatermark, setSelectedWatermark] = useState(null);
+    const [watermarks,setWatermarks]=useState([]);    
     useEffect(() => {
         function handleKeyDown(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
@@ -139,6 +148,8 @@ function Editor() {
         setPages(last.pages)
         setTextBoxes(last.textBoxes)
         setSignatures(last.signatures)
+        setWatermarkText(last.watermarkText)
+        setWatermarkImage(last.watermarkImage)
         setHistory(h => h.slice(0, -1))
     }
     function updateFontSize(id, size) {
@@ -241,6 +252,29 @@ function Editor() {
         const g = parseInt(hex.substring(2, 4), 16) / 255;
         const b = parseInt(hex.substring(4, 6), 16) / 255;
         return rgb(r, g, b);
+    }
+    function onApplyWatermark(){
+        setHistory(h => [
+            ...h,
+            {
+                pages,
+                textBoxes,
+                signatures,
+            },
+        ])
+        setApplyWatermark(prev=>prev+1);
+    }
+    function onRemoveWatermark(){
+        setHistory(h => [
+            ...h,
+            {
+                pages,
+                textBoxes,
+                signatures,
+            },
+        ])
+        setWatermarks([]);
+        setSelectedWatermark(null);
     }
     async function savePDF() {
         if (!pdfBytes) return;
@@ -360,6 +394,15 @@ function Editor() {
                             updateSignaturePosition={updateSignaturePosition}
                             updateSignatureSize={updateSignatureSize}
                             deleteSignature={deleteSignature}
+                            watermarkType={watermarkType}
+                            watermarkText={watermarkText}
+                            watermarkImage={watermarkImage}
+                            watermarkOpacity={watermarkOpacity}
+                            watermarkPosition={watermarkPosition}
+                            watermarkApplyTo={watermarkApplyTo}
+                            applyWatermark={applyWatermark}
+                            watermarks={watermarks}
+                            setWatermarks={setWatermarks}
                         />
                         <RightPanel
                             onRotateCW={rotateCW}
@@ -372,6 +415,21 @@ function Editor() {
                             currentPage={currentPage}
                             showSignaturePad={showSignaturePad}
                             setShowSignaturePad={setShowSignaturePad}
+                            watermarkType={watermarkType}
+                            setWatermarkType={setWatermarkType}
+                            watermarkText={watermarkText}
+                            setWatermarkText={setWatermarkText}
+                            watermarkImage={watermarkImage}
+                            setWatermarkImage={setWatermarkImage}
+                            watermarkOpacity={watermarkOpacity}
+                            setWatermarkOpacity={setWatermarkOpacity}
+                            watermarkPosition={watermarkPosition}
+                            setWatermarkPosition={setWatermarkPosition}
+                            watermarkApplyTo={watermarkApplyTo}
+                            setWatermarkApplyTo={setWatermarkApplyTo}
+                            onApplyWatermark={onApplyWatermark}
+                            onRemoveWatermark={onRemoveWatermark}
+                            selectedWatermark={selectedWatermark}
                         />
                     </div>
                     {showSignaturePad && (
