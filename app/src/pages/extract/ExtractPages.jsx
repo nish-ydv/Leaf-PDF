@@ -4,10 +4,11 @@ import * as pdfjsLib from "pdfjs-dist";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
-
+import { useCloud } from '../../context/cloudContext'
+import { cloudExtractPages, downloadBlob } from '../../api'
 function ExtractPages() {
     const fileInputRef = useRef(null);
-
+    const { cloudMode } = useCloud();
     const [selectedFile, setSelectedFile] = useState(null);
     const [message, setMessage] = useState("");
     const [isDragging, setIsDragging] = useState(false);
@@ -178,43 +179,58 @@ function ExtractPages() {
             showToast("Select at least one page.", true);
             return;
         }
+        if (cloudMode) {
+            try {
+                setLoading(true);
+                const blob = await cloudExtractPages(selectedFile, selectedPages.join(','));
+                downloadBlob(blob, 'extracted.pdf')
+            }
+            catch (err) {
+                console.error('cloud extract failed', err);
+            }
+            finally {
+                setLoading(false);
+            }
+        }
+        else {
 
-        setLoading(true);
+            setLoading(true);
 
-        try {
+            try {
 
-            const originalName = selectedFile.name.replace(/\.pdf$/i, "");
+                const originalName = selectedFile.name.replace(/\.pdf$/i, "");
 
-            const arrayBuffer = await selectedFile.arrayBuffer();
+                const arrayBuffer = await selectedFile.arrayBuffer();
 
-            const originalPdf = await PDFDocument.load(arrayBuffer);
+                const originalPdf = await PDFDocument.load(arrayBuffer);
 
-            const newPdf = await PDFDocument.create();
+                const newPdf = await PDFDocument.create();
 
-            const copiedPages = await newPdf.copyPages(
-                originalPdf,
-                [...selectedPages]
-                    .sort((a, b) => a - b)
-                    .map(page => page - 1)
-            );
+                const copiedPages = await newPdf.copyPages(
+                    originalPdf,
+                    [...selectedPages]
+                        .sort((a, b) => a - b)
+                        .map(page => page - 1)
+                );
 
-            copiedPages.forEach(page => newPdf.addPage(page));
+                copiedPages.forEach(page => newPdf.addPage(page));
 
-            const bytes = await newPdf.save();
+                const bytes = await newPdf.save();
 
-            downloadPDF(bytes, `${originalName}_extract.pdf`);
+                downloadPDF(bytes, `${originalName}_extract.pdf`);
 
-            showToast("Pages extracted successfully!");
+                showToast("Pages extracted successfully!");
 
-            setSelectedPages([]);
+                setSelectedPages([]);
 
-        } catch (err) {
-            console.error(err);
-            showToast("Failed to extract pages.", true);
+            } catch (err) {
+                console.error(err);
+                showToast("Failed to extract pages.", true);
 
-        } finally {
-            setLoading(false);
+            } finally {
+                setLoading(false);
 
+            }
         }
     }
     function downloadPDF(bytes, fileName) {
@@ -238,12 +254,6 @@ function ExtractPages() {
     }
     return (
         <>
-            <div className="hero-leaves">
-                <img src="/resources/leaf.svg" className="leaf leaf1" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf2" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf3" alt="" />
-            </div>
-
             <main className="tool-page">
 
                 <div className="tool-header">

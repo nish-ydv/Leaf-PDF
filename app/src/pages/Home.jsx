@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-
+import { useCloud } from '../context/cloudContext'
 function Home() {
+    const {cloudMode} = useCloud()
     const [search, setSearch] = useState('')
     const [filter, setFilter] = useState('all')
     useEffect(() => {
@@ -15,16 +16,17 @@ function Home() {
     }, [])
 
     const tools = [
-        { name: 'Edit PDF', desc: 'Rotate, delete, reorder, sign — all in one editor', icon: '🍃', category: 'organize', path: '/editor', featured: true, badge: 'Editor', badgeClass: 'badge-editor' },
-        { name: 'Merge PDF', desc: 'Combine multiple PDFs into one', icon: '🔗', category: 'organize', path: '/merge', badge: 'Live', badgeClass: 'badge-live' },
-        { name: 'Split PDF', desc: 'Split into two PDFs at any page', icon: '✂️', category: 'organize', path: '/split', badge: 'Live', badgeClass: 'badge-live' },
-        { name: 'Image to PDF', desc: 'Convert JPG or PNG to PDF', icon: '🖼', category: 'convert', path: '/convert', badge: 'Live', badgeClass: 'badge-live' },
-        { name: 'Compress PDF', desc: 'Shrink file size without quality loss', icon: '📦', category: 'optimize', path: '/shrink', badge: 'Live', badgeClass: 'badge-live' },
-        { name: 'Extract Pages', desc: 'Extract pages from pdf', icon: '📄', category: 'extract', path: '/extract/pages', badge: 'Live', badgeClass: 'badge-live'},
-        { name: 'Extract Images', desc: 'Extract images from pdf', icon: '🖼️', category: 'extract', path: '/extract/images', badge: 'Live', badgeClass: 'badge-live'},
-        { name: 'Extract Text', desc: 'Extract text from pdf', icon: '📝', category: 'extract', path: '/extract/text', badge: 'Live', badgeClass: 'badge-live'},
-        { name: 'Lock PDF', desc: 'Lock PDF by password', icon: '🔒', category: 'security', path: '/security/lock', badge: 'Live', badgeClass: 'badge-live'},
-        { name: 'Unlock PDF', desc: 'Unlock PDF using password', icon: '🔓', category: 'security', path: '/security/unlock', badge: 'Live', badgeClass: 'badge-live'},
+        { name: 'Edit PDF', desc: 'Rotate, delete, reorder, sign — all in one editor', icon: '🍃', category: 'organize', path: '/editor', featured: true, badge: 'Editor', badgeClass: 'badge-editor',serverOnly: false },
+        { name: 'Merge PDF', desc: 'Combine multiple PDFs into one', icon: '🔗', category: 'organize', path: '/merge', badge: 'Live', badgeClass: 'badge-live',serverOnly: false },
+        { name: 'Split PDF', desc: 'Split into two PDFs at any page', icon: '✂️', category: 'organize', path: '/split', badge: 'Live', badgeClass: 'badge-live',serverOnly: false },
+        { name: 'Image to PDF', desc: 'Convert JPG or PNG to PDF', icon: '🖼', category: 'convert', path: '/convert', badge: 'Live', badgeClass: 'badge-live',serverOnly: false },
+        { name: 'Compress PDF', desc: 'Shrink file size without quality loss', icon: '📦', category: 'optimize', path: '/shrink', badge: 'Cloud', badgeClass: 'badge-cloud',serverOnly: true },
+        { name: 'Extract Pages', desc: 'Extract pages from pdf', icon: '📄', category: 'extract', path: '/extract/pages', badge: 'Live', badgeClass: 'badge-live',serverOnly: false},
+        { name: 'Extract Images', desc: 'Extract images from pdf', icon: '🖼️', category: 'extract', path: '/extract/images', badge: 'Live', badgeClass: 'badge-live',serverOnly: false},
+        { name: 'Extract Text', desc: 'Extract text from pdf', icon: '📝', category: 'extract', path: '/extract/text', badge: 'Live', badgeClass: 'badge-live',serverOnly: false},
+        { name: 'Lock PDF', desc: 'Lock PDF by password', icon: '🔒', category: 'security', path: '/security/lock', badge: 'Live', badgeClass: 'badge-live',serverOnly: false},
+        { name: 'Unlock PDF', desc: 'Unlock PDF using password', icon: '🔓', category: 'security', path: '/security/unlock', badge: 'Live', badgeClass: 'badge-live',serverOnly: false},
+        { name: 'PDF To Word', desc: 'Convert PDF to word document', icon: '📄', category: 'convert', path: '/word', badge: 'Cloud', badgeClass: 'badge-cloud', serverOnly:true},
     ]
 
     const categories = [
@@ -45,11 +47,6 @@ function Home() {
 
     return (
         <>
-            <div className="hero-leaves">
-                <img src="/resources/leaf.svg" className="leaf leaf1" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf2" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf3" alt="" />
-            </div>
             <section className="hero">
                 <div className="hero-inner">
                     <div className="hero-pill">
@@ -70,7 +67,7 @@ function Home() {
                     </div>
                     <div className="hero-stat">
                         <div className="stat">
-                            <span className="stat-num hero-green">10</span>
+                            <span className="stat-num hero-green">11</span>
                             <span className="stat-label">Current tools</span>
                         </div>
                         <div className="stat">
@@ -149,8 +146,16 @@ function Home() {
                                         <Link
                                             key={tool.name}
                                             to={tool.path}
-                                            className={`tool-card ${tool.featured ? 'featured' : ''}`}
+                                            className={`tool-card ${tool.featured ? 'featured' : ''} ${tool.serverOnly && !cloudMode ? 'locked':''}`}
+                                            onClick={e=>{
+                                                if(tool.serverOnly && !cloudMode) e.preventDefault()
+                                            }}
                                         >
+                                            {tool.serverOnly && !cloudMode && (
+                                                <div className='tool-lock-overlay'>
+                                                    <span>☁️ Cloud Mode Only</span>
+                                                </div>
+                                            )}
                                             <div className="card-icon">{tool.icon}</div>
                                             <div className="card-body">
                                                 <h3 className="card-name">{tool.name}</h3>

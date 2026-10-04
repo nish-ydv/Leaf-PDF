@@ -502,6 +502,19 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                 </div>
                             ))
                         }
+                        <div className="mobile-page-nav">
+                            <button
+                                onClick={() => onPageChange(currentPage - 1)}
+                                disabled={currentPage === 0}
+                            >←</button>
+                            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600 }}>
+                                {currentPage + 1} / {pages.length}
+                            </span>
+                            <button
+                                onClick={() => onPageChange(currentPage + 1)}
+                                disabled={currentPage === pages.length - 1}
+                            >→</button>
+                        </div>
                     </div>
                 )}
             </div>

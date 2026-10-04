@@ -199,12 +199,6 @@ function ExtractImages() {
     }
     return (
         <>
-            <div className="hero-leaves">
-                <img src="/resources/leaf.svg" className="leaf leaf1" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf2" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf3" alt="" />
-            </div>
-
             <main className="tool-page">
                 <div className="tool-header">
                     <div className="tool-icon-big">🖼️</div>

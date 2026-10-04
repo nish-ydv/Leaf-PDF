@@ -12,6 +12,8 @@ import {
 } from "@dnd-kit/sortable"
 
 import { CSS } from "@dnd-kit/utilities"
+import { useCloud } from '../context/cloudContext'
+import { cloudConvert, downloadBlob } from '../api'
 function SortableItem({ file, removeFile, index }) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: file.name });
     const style = {
@@ -30,6 +32,7 @@ function SortableItem({ file, removeFile, index }) {
     )
 }
 function Convert() {
+    const { cloudMode } = useCloud()
     const [selectedFiles, setSelectedFiles] = useState([])
     const [message, setMessage] = useState('')
     const [result, setResult] = useState('')
@@ -86,35 +89,51 @@ function Convert() {
         }
     }
     async function handleConvert() {
-        setLoading(true)
-        try {
-            const convertPdf = await PDFDocument.create()
-            for (const file of selectedFiles) {
-                const arrayBuffer = await file.arrayBuffer()
-                let image
-                if (file.type === 'image/png') {
-                    image = await convertPdf.embedPng(arrayBuffer)
-                } else if (file.type === 'image/jpeg') {
-                    image = await convertPdf.embedJpg(arrayBuffer)
-                }
-                const page = convertPdf.addPage([image.width, image.height])
-                page.drawImage(image, {
-                    x: 0, y: 0,
-                    width: image.width,
-                    height: image.height,
-                })
+        if (cloudMode) {
+            try {
+                setLoading(true);
+                const blob = await cloudConvert(selectedFiles)
+                downloadBlob(blob, 'converted.pdf')
+                console.log('Working with cloud mode')
             }
-            const bytes = await convertPdf.save()
-            downloadPDF(bytes)
-            setResult('PDF created successfully!')
-            setSelectedFiles([])
-            setMessage('')
-            setTimeout(() => setResult(''), 3000)
-        } catch (err) {
-            setResult('Failed to convert images')
-            console.error(err)
-        } finally {
-            setLoading(false)
+            catch (err) {
+                console.error('pdf convert failed', err)
+            }
+            finally {
+                setLoading(false);
+            }
+        }
+        else {
+            setLoading(true)
+            try {
+                const convertPdf = await PDFDocument.create()
+                for (const file of selectedFiles) {
+                    const arrayBuffer = await file.arrayBuffer()
+                    let image
+                    if (file.type === 'image/png') {
+                        image = await convertPdf.embedPng(arrayBuffer)
+                    } else if (file.type === 'image/jpeg') {
+                        image = await convertPdf.embedJpg(arrayBuffer)
+                    }
+                    const page = convertPdf.addPage([image.width, image.height])
+                    page.drawImage(image, {
+                        x: 0, y: 0,
+                        width: image.width,
+                        height: image.height,
+                    })
+                }
+                const bytes = await convertPdf.save()
+                downloadPDF(bytes)
+                setResult('PDF created successfully!')
+                setSelectedFiles([])
+                setMessage('')
+                setTimeout(() => setResult(''), 3000)
+            } catch (err) {
+                setResult('Failed to convert images')
+                console.error(err)
+            } finally {
+                setLoading(false)
+            }
         }
     }
     function downloadPDF(bytes) {
@@ -131,11 +150,6 @@ function Convert() {
     const canConvert = selectedFiles.length >= 1 && !loading
     return (
         <main className="tool-page">
-            <div className="tool-header">
-                <div className="tool-icon-big">🖼</div>
-                <h1 className="tool-h1">Image to PDF</h1>
-                <p className="tool-sub">Convert JPG or PNG images into a high-quality PDF file. Perfect for scanned notes and photos.</p>
-            </div>
             <div
                 className={`upload-zone${isDragging ? ' drag-over' : ''}`}
                 onDragOver={e => { e.preventDefault(); setIsDragging(true) }}

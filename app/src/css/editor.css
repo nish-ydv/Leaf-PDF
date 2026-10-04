@@ -305,41 +305,7 @@ button.tb-btn.danger:hover:not(:disabled) {
     opacity: 0.3;
     cursor: not-allowed;
 }
-@media (max-width: 768px) {
-    .page-panel {
-        display: none;
-    }
 
-    .editor-toolbar {
-        height: auto;
-        min-height: 52px;
-        padding: 8px;
-        gap: 8px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        justify-content: flex-start;
-    }
-
-    .toolbar-filename .toolbar-divider .toolbar-spacer {
-        display: none;
-    }
-
-    .canvas-scroll {
-        padding: 20px 10px;
-        align-items: center;
-    }
-
-    .canvas-area canvas {
-        max-width: 100%;
-        height: auto;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-    button.tb-btn {
-        padding: 8px 12px;
-        font-size: 14px;
-        background: var(--cream-2);
-    }
-}
 .page-thumb span {
     display: inline-block;
     padding: 8px;
@@ -837,4 +803,100 @@ button.tb-btn.danger:hover:not(:disabled) {
 .watermark-image{
     max-width:180px;
     max-height:180px;
+}
+.quality-selector {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.quality-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--cream-2);
+    color: var(--ink-3);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quality-btn:hover {
+    border-color: var(--green);
+    color: var(--forest);
+}
+
+.quality-btn.active {
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: var(--forest);
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .page-panel { display: none; }
+    
+    .toolbar-filename,
+    .toolbar-divider,
+    .toolbar-spacer { display: none; }
+    
+    .mobile-page-nav {
+        display: flex;
+    }
+
+    .right-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: auto;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 6px 10px;
+        gap: 6px;
+        z-index: 200;
+        background: var(--white);
+    }
+    
+    .rpanel-section {
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
+        border-bottom: none;
+        border-right: 1px solid var(--border);
+        padding: 0 10px 0 0;
+        flex-shrink: 0;
+    }
+    
+    .rpanel-section:last-child {
+        border-right: none;
+    }
+    
+    .rpanel-title { display: none; }
+    
+    .rpanel-btn {
+        white-space: nowrap;
+        width: auto;
+        margin-bottom: 0;
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    .canvas-area {
+        padding-bottom: 120px;
+    }
+    
+    .editor-toolbar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    button.tb-btn {
+        font-size: 12px;
+        padding: 6px 8px;
+    }
 }

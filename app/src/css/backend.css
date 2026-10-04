@@ -1,0 +1,65 @@
+:root {
+    --forest: #14532d;
+    --forest-mid: #166534;
+    --green: #16a34a;
+    --green-light: #22c55e;
+    --green-pale: #dcfce7;
+    --green-dim: rgba(20, 83, 45, 0.08);
+    --cream: #faf8f3;
+    --cream-2: #f4f1ea;
+    --cream-3: #ede9df;
+    --parchment: #e8e2d5;
+    --ink: #1c1917;
+    --ink-2: #292524;
+    --ink-3: #57534e;
+    --ink-4: #a8a29e;
+    --ink-5: #d6d3d1;
+    --border: #e7e3da;
+    --border-2: #d6d0c6;
+    --white: #ffffff;
+}
+.cloud-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--cream-2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    color: var(--ink);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-dot.online { background: #22c55e; }
+.status-dot.offline { background: #ef4444; }
+
+.toggle-label {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+}
+
+.toggle-btn {
+    background: var(--cream-3);
+    color: var(--ink);
+    border: 1px solid var(--border-2);
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.toggle-btn.active {
+    background: var(--forest-mid);
+    border-color: var(--green-light);
+    color: white;
+}
+
+.toggle-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

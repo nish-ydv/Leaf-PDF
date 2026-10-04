@@ -1,14 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { useCloud } from '../context/cloudContext'
-import { cloudCompress, downloadBlob } from '../api'
-const ShrinkPDF = () => {
+import { cloudWord, downloadBlob } from '../api'
+const Word = () => {
   const {cloudMode, toggleCloud} = useCloud();
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [statusMessage, setStatusMessage] = useState({ text: '', isError: false, visible: false });
   const [isDragging, setIsDragging] = useState(false);
-  const [quality,setQuality]= useState('medium')
 
   const fileInputRef = useRef(null);
   if(!cloudMode){
@@ -22,8 +21,7 @@ const ShrinkPDF = () => {
                     <div className="cloud-gate-icon">☁️</div>
                     <h2 className="cloud-gate-title">Cloud Mode Required</h2>
                     <p className="cloud-gate-desc">
-                        PDF compression uses Ghostscript on our server 
-                        to reduce file size without quality loss.
+                        PDF to Word conversion uses backend tools on our server.
                         Enable Cloud Mode to use this feature.
                     </p>
                     <button 
@@ -39,10 +37,6 @@ const ShrinkPDF = () => {
   const validateFile = (file) => {
     if (file.type !== "application/pdf") {
       return `File ${file.name} is not a valid PDF.`;
-    }
-    const maxFile = 50 * 1024 * 1024;
-    if (file.size > maxFile) {
-      return `File size ${(file.size / 1024 / 1024).toFixed(2)}MB exceeds 50MB limit.`;
     }
     return null;
   };
@@ -61,16 +55,16 @@ const ShrinkPDF = () => {
     }
   };
 
-  const shrinkPDF = async () => {
+  const wordPDF = async () => {
     if (!selectedFile) return;
     try{
       setLoading(true)
-      const blob = await cloudCompress(selectedFile,quality)
-      downloadBlob(blob,'compressed.pdf')
+      const blob = await cloudWord(selectedFile)
+      downloadBlob(blob,'converted.docx')
     }
     catch(err){
-      console.error('Cloud Compress failed',err);
       showToast('Conversion failed. Try a different PDF.', true)
+      console.error('Cloud Compress failed',err);
     }
     finally{
       setLoading(false);
@@ -96,9 +90,9 @@ const ShrinkPDF = () => {
     <>
       <div className="tool-page">
         <div className="tool-header">
-          <div className="tool-icon-big">📦</div>
-          <h1 className="tool-h1">Compress PDF</h1>
-          <p className="tool-sub">Reduce the file size of your PDF without losing readability.</p>
+          <div className="tool-icon-big">📄</div>
+          <h1 className="tool-h1">PDF To Word</h1>
+          <p className="tool-sub">Convert PDF files to word document.</p>
         </div>
 
         <div
@@ -153,29 +147,18 @@ const ShrinkPDF = () => {
           <button
             className="action-btn"
             disabled={!selectedFile || loading}
-            onClick={shrinkPDF}
+            onClick={wordPDF}
           >
             <i className="fa-solid fa-compress"></i>
-            {loading ? "Processing..." : "Compress PDF"}
+            {loading ? "Processing..." : "PDF To Word"}
           </button>
           <p className="action-note">
             ☁️ File is processed on our server and deleted immediately after download
           </p>
-        </div>
-        <div className="quality-selector">
-          {['low','medium','high'].map(q=>(
-            <button
-              key={q}
-              className={`quality-btn ${quality === q ? 'active' : ''}`}
-              onClick={()=>setQuality(q)}
-              >
-                {q.charAt(0).toUpperCase() + q.slice(1)}
-              </button>
-            ))}
         </div>
       </div>
     </>
   );
 };
 
-export default ShrinkPDF;
+export default Word;

@@ -12,6 +12,8 @@ import {
 } from "@dnd-kit/sortable"
 
 import { CSS } from "@dnd-kit/utilities"
+import { useCloud } from '../context/cloudContext'
+import { cloudMerge, downloadBlob } from '../api'
 
 function SortableItem({ file, removeFile, index, }) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: file.name });
@@ -30,6 +32,7 @@ function SortableItem({ file, removeFile, index, }) {
     )
 }
 function Merge() {
+    const {cloudMode} = useCloud()
     const [selectedFiles, setSelectedFiles] = useState([])
     const [message, setMessage] = useState('')
     const [result, setResult] = useState('')
@@ -86,7 +89,21 @@ function Merge() {
     }
 
     async function handleMerge() {
-        setLoading(true)
+        if(cloudMode){
+            try{
+                setLoading(true)
+                const blob = await cloudMerge(selectedFiles)
+                downloadBlob(blob,'merged.pdf')
+            }
+            catch(err){
+                console.error('Cloud merge failed',err)
+            }
+            finally{
+                setLoading(false)
+            }
+        }
+        else{
+            setLoading(true)
         try {
             const mergePdf = await PDFDocument.create()
             for (const file of selectedFiles) {
@@ -107,6 +124,7 @@ function Merge() {
         } finally {
             setLoading(false)
         }
+        }
     }
 
     function downloadPDF(bytes) {
@@ -125,11 +143,6 @@ function Merge() {
 
     return (
         <>
-            <div className="hero-leaves">
-                <img src="/resources/leaf.svg" className="leaf leaf1" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf2" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf3" alt="" />
-            </div>
             <main className="tool-page">
                 <div className="tool-header">
                     <div className="tool-icon-big">🔗</div>

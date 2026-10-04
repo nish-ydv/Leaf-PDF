@@ -1,12 +1,6 @@
 function About() {
     return (
         <>
-            <div className="hero-leaves">
-                <img src="/resources/leaf.svg" className="leaf leaf1" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf2" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf3" alt="" />
-            </div>
-
             <main className="about-page">
                 <div className="about-hero">
                     <span className="about-leaf">🍃</span>
@@ -17,7 +11,7 @@ function About() {
 
                 <div className="about-stats">
                     <div className="about-stat">
-                        <div className="about-stat-num">10</div>
+                        <div className="about-stat-num">11</div>
                         <div className="about-stat-label">Current tools</div>
                     </div>
                     <div className="about-stat">

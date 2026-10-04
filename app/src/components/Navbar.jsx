@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import CloudToggle from './CloudToggle'
 
 function Navbar() {
     return (
@@ -56,7 +57,7 @@ function Navbar() {
             </div>
 
             <div className="nav-end">
-                <a href="https://github.com/nish-ydv" target="_blank" className="btn-ghost">GitHub</a>
+                <CloudToggle/>
                 <Link to="/editor" className="btn-cta">Open PDF →</Link>
             </div>
         </nav>

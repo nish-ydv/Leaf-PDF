@@ -1,12 +1,6 @@
 function Contact() {
     return (
         <>
-            <div className="hero-leaves">
-                <img src="/resources/leaf.svg" className="leaf leaf1" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf2" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf3" alt="" />
-            </div>
-
             <main className="contact-page">
                 <div className="contact-header">
                     <h1 className="contact-h1">Say <span>hello.</span></h1>

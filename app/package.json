@@ -16,6 +16,7 @@
     "@dnd-kit/react": "^0.3.2",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "axios": "^1.19.0",
     "lucide-react": "^1.21.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.624",

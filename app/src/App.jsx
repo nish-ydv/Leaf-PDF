@@ -1,4 +1,5 @@
 import { HashRouter, Routes, Route } from 'react-router-dom'
+import { CloudProvider } from './context/cloudContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './pages/Home'
@@ -14,11 +15,13 @@ import ExtractImages from './pages/extract/ExtractImages'
 import ExtractText from './pages/extract/ExtractText'
 import LockPDF from './pages/security/Lock'
 import UnlockPDF from './pages/security/Unlock'
+import Word from './pages/Word'
+
 import './css/style.css'
 import './css/tools.css'
 import './css/index.css'
 import './css/editor.css'
-
+import './css/backend.css'
 function Layout() {
   return (
     <>
@@ -31,11 +34,12 @@ function Layout() {
         <Route path="/shrink" element={<Shrink />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path='/extract/pages' element={<ExtractPages />}/>
-        <Route path='/extract/images' element={<ExtractImages/>}/>
-        <Route path='/extract/text' element={<ExtractText/>}/>
-        <Route path='/security/lock' element={<LockPDF/>}/>
-        <Route path='/security/unlock' element={<UnlockPDF/>}/>
+        <Route path="/word" element={<Word />} />
+        <Route path='/extract/pages' element={<ExtractPages />} />
+        <Route path='/extract/images' element={<ExtractImages />} />
+        <Route path='/extract/text' element={<ExtractText />} />
+        <Route path='/security/lock' element={<LockPDF />} />
+        <Route path='/security/unlock' element={<UnlockPDF />} />
       </Routes>
       <Footer />
     </>
@@ -44,12 +48,14 @@ function Layout() {
 
 function App() {
   return (
-    <HashRouter>
-      <Routes>
-        <Route path="/editor" element={<Editor />} />
-        <Route path="/*" element={<Layout />} />
-      </Routes>
-    </HashRouter>
+    <CloudProvider>
+      <HashRouter>
+        <Routes>
+          <Route path="/editor" element={<Editor />} />
+          <Route path="/*" element={<Layout />} />
+        </Routes>
+      </HashRouter>
+    </CloudProvider>
   )
 }
 
