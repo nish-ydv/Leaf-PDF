@@ -893,95 +893,87 @@ button.tb-btn.danger:hover:not(:disabled) {
         left: 0;
         right: 0;
         width: 100%;
-
-        max-height: 42dvh;
-        overflow-y: auto;
-        overflow-x: hidden;
-
+        height: auto;
         border-left: none;
         border-top: 1px solid var(--border);
-
-        display: flex;
-        flex-direction: column;
-
-        padding: 10px 12px;
-        gap: 8px;
-
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 6px 10px;
+        gap: 6px;
         z-index: 200;
         background: var(--white);
-
-        box-sizing: border-box;
-        overscroll-behavior: contain;
     }
 
     .rpanel-section {
         display: flex;
-        flex-direction: column;
-        gap: 10px;
-
-        border-bottom: 1px solid var(--border);
-        border-right: none;
-
-        padding: 10px 0;
-        width: 100%;
+        flex-direction: row;
+        gap: 6px;
+        border-bottom: none;
+        border-right: 1px solid var(--border);
+        padding: 0 10px 0 0;
         flex-shrink: 0;
-        box-sizing: border-box;
     }
 
     .rpanel-section:last-child {
-        border-bottom: none;
+        border-right: none;
     }
 
     .rpanel-title {
-        display: block;
-        font-size: 12px;
-        margin-bottom: 4px;
+        display: none;
     }
 
     .rpanel-btn {
-        white-space: normal;
-        width: 100%;
+        white-space: nowrap;
+        width: auto;
         margin-bottom: 0;
-        padding: 10px 12px;
-        font-size: 13px;
+        padding: 6px 10px;
+        font-size: 12px;
     }
 
     .canvas-area {
         padding-bottom: 120px;
     }
 
+    .canvas-scroll {
+        padding: 10px;
+        justify-content: center;
+        align-items: flex-start;
+
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .canvas-scroll canvas {
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+    .watermark-options {
+        position: fixed;
+
+        left: 10px;
+        right: 10px;
+        bottom: 82px;
+
+        width: auto;
+        max-height: 45dvh;
+        overflow-y: auto;
+
+        margin: 0;
+        padding: 14px;
+
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+
+        box-sizing: border-box;
+        z-index: 300;
+    }
     .editor-toolbar {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-    }
-
-    .watermark-options {
-        margin-top: 8px;
-        padding: 12px;
-        gap: 12px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .watermark-type-selector {
-        gap: 8px;
-    }
-
-    .watermark-type-btn {
-        padding: 10px 8px;
-        font-size: 13px;
-    }
-
-    .watermark-options input[type="text"],
-    .watermark-options input[type="file"],
-    .watermark-options select {
-        padding: 10px;
-        font-size: 14px;
-    }
-
-    .watermark-options .rpanel-btn {
-        width: 100%;
-        margin-top: 4px;
     }
 
     button.tb-btn {
