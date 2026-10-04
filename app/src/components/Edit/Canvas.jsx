@@ -13,7 +13,9 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
         async function render() {
             const pdfPage = await pdfDoc.getPage(pages[currentPage].id);
             const rotation = pages[currentPage].rotation;
-            const viewport = pdfPage.getViewport({ scale: 1.5, rotation: rotation });
+            const isMobile = window.innerWidth <= 768
+            const scale = isMobile ? 0.6:1.5
+            const viewport = pdfPage.getViewport({ scale: scale, rotation: rotation });
             const canvas = canvasRef.current;
             if (!canvas) return;
             canvas.width = viewport.width;
