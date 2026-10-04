@@ -8,13 +8,14 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
     applyWatermark, watermarks, setWatermarks, setSelectedWatermark, selectedWatermark
 }) {
     const canvasRef = useRef(null);
+    const [pageInput, setPageInput] = useState(String(currentPage + 1));
     useEffect(() => {
         let renderTask = null;
         async function render() {
             const pdfPage = await pdfDoc.getPage(pages[currentPage].id);
             const rotation = pages[currentPage].rotation;
             const isMobile = window.innerWidth <= 768
-            const scale = isMobile ? 0.6:1.5
+            const scale = isMobile ? 1.2 : 1.5
             const viewport = pdfPage.getViewport({ scale: scale, rotation: rotation });
             const canvas = canvasRef.current;
             if (!canvas) return;
@@ -23,6 +24,7 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
             const ctx = canvas.getContext('2d');
             renderTask = pdfPage.render({ canvasContext: ctx, viewport });
             await renderTask.promise;
+            setPageInput(String(currentPage + 1));
         }
         render()
         return () => { if (renderTask) renderTask.cancel() }
@@ -508,14 +510,63 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                             <button
                                 onClick={() => onPageChange(currentPage - 1)}
                                 disabled={currentPage === 0}
-                            >←</button>
-                            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600 }}>
-                                {currentPage + 1} / {pages.length}
+                            >
+                                ←
+                            </button>
+
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                value={pageInput}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+
+                                    if (/^\d*$/.test(value)) {
+                                        setPageInput(value);
+                                    }
+                                }}
+                                onBlur={() => {
+                                    const page = Number(pageInput);
+
+                                    if (
+                                        pageInput !== "" &&
+                                        page >= 1 &&
+                                        page <= pages.length
+                                    ) {
+                                        onPageChange(page - 1);
+                                    } else {
+                                        setPageInput(String(currentPage + 1));
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.target.blur();
+                                    }
+                                }}
+                                style={{
+                                    width: 50,
+                                    textAlign: 'center',
+                                    borderRadius: 6,
+                                    border: '1px solid #555',
+                                    background: '#333',
+                                    color: 'white',
+                                    padding: '4px'
+                                }}
+                            />
+
+                            <span style={{
+                                color: 'rgba(255,255,255,0.5)',
+                                fontSize: 13
+                            }}>
+                                / {pages.length}
                             </span>
+
                             <button
                                 onClick={() => onPageChange(currentPage + 1)}
                                 disabled={currentPage === pages.length - 1}
-                            >→</button>
+                            >
+                                →
+                            </button>
                         </div>
                     </div>
                 )}
