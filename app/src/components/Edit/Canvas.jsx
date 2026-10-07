@@ -34,7 +34,7 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
 
         applyWatermarkToCanvas();
     }, [applyWatermark]);
-    function addWatermark() {
+    function applyWatermarkToCanvas() {
         if (watermarkType === "text" && !watermarkText.trim()) {
             return;
         }
