@@ -30,15 +30,19 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
         return () => { if (renderTask) renderTask.cancel() }
     }, [pdfDoc, currentPage, pages[currentPage]?.rotation, pages[currentPage]?.id])
     useEffect(() => {
+        if (applyWatermark === 0) return;
+
         applyWatermarkToCanvas();
-    }, [applyWatermark])
-    function applyWatermarkToCanvas() {
+    }, [applyWatermark]);
+    function addWatermark() {
         if (watermarkType === "text" && !watermarkText.trim()) {
             return;
         }
-        else if (watermarkType === "image" && !watermarkImage) {
+
+        if (watermarkType === "image" && !watermarkImage) {
             return;
         }
+
         const watermark = {
             id: crypto.randomUUID(),
             pageIndex: currentPage,
@@ -48,8 +52,9 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
             image: watermarkImage,
             opacity: watermarkOpacity,
             position: watermarkPosition,
-        }
-        setWatermarks(prev => [...prev, watermark])
+        };
+
+        setWatermarks(prev => [...prev, watermark]);
     }
     function getWatermarkPosition(position) {
         switch (position) {

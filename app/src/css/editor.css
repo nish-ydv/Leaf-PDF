@@ -970,8 +970,8 @@ button.tb-btn.danger:hover:not(:disabled) {
         position: fixed;
         left: 10px;
         right: 10px;
-        bottom: 120px;
-        max-height: 45dvh;
+        bottom: 70px;
+        max-height: calc(100dvh - 140px);
         overflow-y: auto;
         margin: 0;
         padding: 14px;
