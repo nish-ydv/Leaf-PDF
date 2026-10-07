@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom"
 import { Signature, Sliders } from "lucide-react";
 import { useState } from "react";
-function RightPanel({ onRotateCW, onRotateCCW, onDelete, isLoaded, activeTool, onSetActiveTool, pages, currentPage, showSignaturePad, setShowSignaturePad, watermarkType, setWatermarkType
-    , watermarkText, setWatermarkText, watermarkImage, setWatermarkImage, watermarkOpacity, setWatermarkOpacity, watermarkPosition, setWatermarkPosition, watermarkApplyTo, setWatermarkApplyTo
-    , onApplyWatermark, onRemoveWatermark, selectedWatermark, onRemoveSelectedWatermark, removeMode, setRemoveMode }) {
+function RightPanel({ onRotateCW, onRotateCCW, onDelete, isLoaded, activeTool, onSetActiveTool, showSignaturePad, setShowSignaturePad, watermarkType, setWatermarkType
+    , watermarkText, setWatermarkText, setWatermarkImage, watermarkOpacity, setWatermarkOpacity, watermarkPosition, setWatermarkPosition, watermarkApplyTo, setWatermarkApplyTo
+    , onApplyWatermark, onRemoveWatermark }) {
     return (
         <div className="right-panel">
             <div className="rpanel-section">

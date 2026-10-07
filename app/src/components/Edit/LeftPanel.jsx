@@ -10,7 +10,6 @@ import {
     verticalListSortingStrategy
 } from "@dnd-kit/sortable"
 
-import { CSS } from "@dnd-kit/utilities"
 function LeftPanel({ pages, currentPage, pdfDoc, onSelect, onReorder }) {
     return (
         <div className="page-panel">

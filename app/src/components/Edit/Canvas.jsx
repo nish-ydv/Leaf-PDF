@@ -146,12 +146,12 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
         }
         function onUp() {
             setDraggingId(null);
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
             document.body.style.userSelect = "";
         }
-        window.addEventListener("mousemove", onMove);
-        window.addEventListener("mouseup", onUp);
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
     }
     function startSignatureDrag(e, box) {
         e.preventDefault();
@@ -171,12 +171,12 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
         }
         function onUp() {
             setDraggingId(null);
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
             document.body.style.userSelect = "";
         }
-        window.addEventListener("mousemove", onMove);
-        window.addEventListener("mouseup", onUp);
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
     }
     function startResize(e, sig) {
         e.preventDefault();
@@ -209,12 +209,12 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
         }
 
         function onUp() {
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
         }
 
-        window.addEventListener("mousemove", onMove);
-        window.addEventListener("mouseup", onUp);
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
     }
     return (
         <div className="canvas-area">
@@ -252,7 +252,7 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                             }}
                                         >
                                             <div
-                                                onMouseDown={(e) => startDrag(e, box)}
+                                                onPointerDown={(e) => startDrag(e, box)}
                                                 style={{
                                                     cursor: draggingId === box.id ? "grabbing" : "grab",
                                                     padding: "0 6px",
@@ -412,7 +412,7 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                             e.stopPropagation();
                                             setSelectedSignature(sig.id);
                                         }}
-                                        onMouseDown={(e) => startSignatureDrag(e, sig)}
+                                        onPointerDown={(e) => startSignatureDrag(e, sig)}
                                         draggable={false}
                                         style={{
                                             width: "100%",
@@ -420,6 +420,7 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                             userSelect: "none",
                                             cursor: draggingId === sig.id ? "grabbing" : "grab",
                                             display: "block",
+                                            touchAction: "none"
                                         }}
                                     />
 
@@ -449,7 +450,7 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                             </button>
 
                                             <div
-                                                onMouseDown={(e) => startResize(e, sig)}
+                                                onPointerDown={(e) => startResize(e, sig)}
                                                 style={{
                                                     position: "absolute",
                                                     right: -6,
@@ -461,6 +462,7 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                                     borderRadius: "50%",
                                                     cursor: "nwse-resize",
                                                     zIndex: 1000,
+                                                    touchAction: "none"
                                                 }}
                                             />
                                         </>
