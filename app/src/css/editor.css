@@ -738,14 +738,17 @@ button.tb-btn.danger:hover:not(:disabled) {
 }
 
 .watermark-options {
-    margin-top: 14px;
+    position: fixed;
+    right: 20px;
+    bottom: 70px;
+    width: 280px;
     padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    background: #fafafa;
-    border: 1px solid #dddddd;
-    border-radius: 12px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    z-index: 500;
 }
 
 .watermark-type-selector {
@@ -971,16 +974,16 @@ button.tb-btn.danger:hover:not(:disabled) {
         left: 10px;
         right: 10px;
         bottom: 70px;
-        max-height: calc(100dvh - 140px);
+        width: auto;
+        max-height: 45dvh;
         overflow-y: auto;
-        margin: 0;
         padding: 14px;
         background: var(--white);
         border: 1px solid var(--border);
         border-radius: 14px;
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
         box-sizing: border-box;
-        z-index: 210;
+        z-index: 500;
     }
 
     .editor-toolbar {

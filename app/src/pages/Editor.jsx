@@ -37,7 +37,7 @@ function Editor() {
     const [watermarkApplyTo, setWatermarkApplyTo] = useState("current");
     const [applyWatermark, setApplyWatermark] = useState(0);
     const [selectedWatermark, setSelectedWatermark] = useState(null);
-    const [watermarks,setWatermarks]=useState([]);    
+    const [watermarks, setWatermarks] = useState([]);
     useEffect(() => {
         function handleKeyDown(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
@@ -253,7 +253,7 @@ function Editor() {
         const b = parseInt(hex.substring(4, 6), 16) / 255;
         return rgb(r, g, b);
     }
-    function onApplyWatermark(){
+    function onApplyWatermark() {
         setHistory(h => [
             ...h,
             {
@@ -262,9 +262,9 @@ function Editor() {
                 signatures,
             },
         ])
-        setApplyWatermark(prev=>prev+1);
+        setApplyWatermark(prev => prev + 1);
     }
-    function onRemoveWatermark(){
+    function onRemoveWatermark() {
         setHistory(h => [
             ...h,
             {
@@ -312,16 +312,16 @@ function Editor() {
                         });
                     });
                 });
-            for(const sig of pageSignatures){
+            for (const sig of pageSignatures) {
                 const png = await newDoc.embedPng(sig.image);
                 copiedPage.drawImage(png, {
                     x: sig.x / canvasScale,
                     y:
                         pageHeight -
-                        (sig.y/canvasScale)-
-                        (sig.height/canvasScale),
-                    width: sig.width/ canvasScale,
-                    height: sig.height/ canvasScale,
+                        (sig.y / canvasScale) -
+                        (sig.height / canvasScale),
+                    width: sig.width / canvasScale,
+                    height: sig.height / canvasScale,
                 });
             }
             newDoc.addPage(copiedPage);
@@ -394,14 +394,6 @@ function Editor() {
                             updateSignaturePosition={updateSignaturePosition}
                             updateSignatureSize={updateSignatureSize}
                             deleteSignature={deleteSignature}
-                            watermarkType={watermarkType}
-                            watermarkText={watermarkText}
-                            watermarkImage={watermarkImage}
-                            watermarkOpacity={watermarkOpacity}
-                            watermarkPosition={watermarkPosition}
-                            watermarkApplyTo={watermarkApplyTo}
-                            applyWatermark={applyWatermark}
-                            watermarks={watermarks}
                             setWatermarks={setWatermarks}
                         />
                         <RightPanel
@@ -432,6 +424,134 @@ function Editor() {
                             selectedWatermark={selectedWatermark}
                         />
                     </div>
+                    {activeTool === "watermark" && (
+                        <div className="watermark-options">
+
+                            <div className="watermark-type-selector">
+
+                                <button
+                                    className={`watermark-type-btn ${watermarkType === "text" ? "active" : ""
+                                        }`}
+                                    onClick={() => setWatermarkType("text")}
+                                >
+                                    📝 Text
+                                </button>
+
+                                <button
+                                    className={`watermark-type-btn ${watermarkType === "image" ? "active" : ""
+                                        }`}
+                                    onClick={() => setWatermarkType("image")}
+                                >
+                                    🖼 Image
+                                </button>
+
+                            </div>
+
+
+                            {watermarkType === "text" && (
+                                <input
+                                    type="text"
+                                    placeholder="Enter Watermark"
+                                    value={watermarkText}
+                                    onChange={(e) =>
+                                        setWatermarkText(e.target.value)
+                                    }
+                                />
+                            )}
+
+
+                            {watermarkType === "image" && (
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) =>
+                                        setWatermarkImage(e.target.files[0])
+                                    }
+                                />
+                            )}
+
+
+                            <label
+                                htmlFor="opacity-slider"
+                                className="opacity"
+                            >
+                                Opacity:
+                            </label>
+
+                            <input
+                                type="range"
+                                id="opacity-slider"
+                                min="0"
+                                max="100"
+                                value={watermarkOpacity}
+                                onChange={(e) =>
+                                    setWatermarkOpacity(Number(e.target.value))
+                                }
+                            />
+
+                            <span className="opacity-value">
+                                {watermarkOpacity}%
+                            </span>
+
+
+                            <label htmlFor="watermark-position">
+                                Position:
+                            </label>
+
+                            <select
+                                id="watermark-position"
+                                value={watermarkPosition}
+                                onChange={(e) =>
+                                    setWatermarkPosition(e.target.value)
+                                }
+                            >
+                                <option value="center">
+                                    Center
+                                </option>
+
+                                <option value="top-left">
+                                    Top Left
+                                </option>
+
+                                <option value="top-right">
+                                    Top Right
+                                </option>
+
+                                <option value="bottom-left">
+                                    Bottom Left
+                                </option>
+
+                                <option value="bottom-right">
+                                    Bottom Right
+                                </option>
+                            </select>
+
+
+                            <select
+                                value={watermarkApplyTo}
+                                onChange={(e) =>
+                                    setWatermarkApplyTo(e.target.value)
+                                }
+                            >
+                                <option value="current">
+                                    Current Page
+                                </option>
+
+                                <option value="all">
+                                    All Page
+                                </option>
+                            </select>
+
+
+                            <button
+                                className="rpanel-btn"
+                                onClick={onApplyWatermark}
+                            >
+                                💧 Apply Watermark
+                            </button>
+
+                        </div>
+                    )}
                     {showSignaturePad && (
                         <SignaturePad
                             onClose={() => setShowSignaturePad(false)}
