@@ -278,9 +278,10 @@ function Editor() {
     }
     async function savePDF() {
         if (!pdfBytes) return;
+        const isMobile = window.innerWidth <= 768
+        const canvasScale = isMobile ? 1.2 : 1.5
         const srcDoc = await PDFDocument.load(pdfBytes);
         const newDoc = await PDFDocument.create();
-        const canvasScale = 1.5;
         for (let i = 0; i < pages.length; i++) {
             const pageMeta = pages[i];
             if (pageMeta.deleted) continue;
