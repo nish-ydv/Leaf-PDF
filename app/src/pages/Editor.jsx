@@ -288,12 +288,18 @@ function Editor() {
             if (pageMeta.rotation !== 0) {
                 copiedPage.setRotation(degrees(pageMeta.rotation));
             }
+            const pageWidth = copiedPage.getWidth();
             const pageHeight = copiedPage.getHeight();
             const pageTextBoxes = textBoxes.filter(
                 box => box.pageIndex === i
             );
             const pageSignatures = signatures.filter(
                 sig => sig.pageIndex === i
+            );
+            const pageWatermarks = watermarks.filter(
+                watermark =>
+                    watermark.allPages ||
+                    watermark.pageIndex === i
             );
             pageTextBoxes
                 .filter(box => box.text.trim() !== "")
@@ -323,6 +329,129 @@ function Editor() {
                     width: sig.width / canvasScale,
                     height: sig.height / canvasScale,
                 });
+            }
+            for (const watermark of pageWatermarks) {
+
+                if (watermark.type === "text") {
+
+                    let x;
+                    let y;
+
+                    const fontSize = 42 / canvasScale;
+
+                    const textWidth =
+                        watermark.text.length *
+                        fontSize *
+                        0.55;
+
+                    const margin = 20 / canvasScale;
+
+                    switch (watermark.position) {
+
+                        case "top-left":
+                            x = margin;
+                            y = pageHeight - margin - fontSize;
+                            break;
+
+                        case "top-right":
+                            x = pageWidth - margin - textWidth;
+                            y = pageHeight - margin - fontSize;
+                            break;
+
+                        case "bottom-left":
+                            x = margin;
+                            y = margin;
+                            break;
+
+                        case "bottom-right":
+                            x = pageWidth - margin - textWidth;
+                            y = margin;
+                            break;
+
+                        case "center":
+                        default:
+                            x = (pageWidth - textWidth) / 2;
+                            y = (pageHeight - fontSize) / 2;
+                            break;
+                    }
+
+                    copiedPage.drawText(watermark.text, {
+                        x,
+                        y,
+                        size: fontSize,
+                        color: rgb(0.27, 0.27, 0.27),
+                        opacity: watermark.opacity / 100,
+                    });
+                }
+                else if (watermark.type === "image" && watermark.image) {
+                    const imageBytes = await watermark.image.arrayBuffer();
+
+                    let embeddedImage;
+
+                    if (watermark.image.type === "image/png") {
+                        embeddedImage = await newDoc.embedPng(imageBytes);
+                    } else if (
+                        watermark.image.type === "image/jpeg" ||
+                        watermark.image.type === "image/jpg"
+                    ) {
+                        embeddedImage = await newDoc.embedJpg(imageBytes);
+                    } else {
+                        console.warn(
+                            "Unsupported watermark image format:",
+                            watermark.image.type
+                        );
+                        continue;
+                    }
+
+                    const maxPreviewSize = 145;
+                    const previewScale = Math.min(
+                        maxPreviewSize / embeddedImage.width,
+                        maxPreviewSize / embeddedImage.height,
+                        1
+                    );
+
+                    const imageWidth = (embeddedImage.width * previewScale) / canvasScale;
+                    const imageHeight = (embeddedImage.height * previewScale) / canvasScale;
+                    const margin = 20 / canvasScale;
+                    let x;
+                    let y;
+
+                    switch (watermark.position) {
+                        case "top-left":
+                            x = margin;
+                            y = pageHeight - margin - imageHeight;
+                            break;
+
+                        case "top-right":
+                            x = pageWidth - margin - imageWidth;
+                            y = pageHeight - margin - imageHeight;
+                            break;
+
+                        case "bottom-left":
+                            x = margin;
+                            y = margin;
+                            break;
+
+                        case "bottom-right":
+                            x = pageWidth - margin - imageWidth;
+                            y = margin;
+                            break;
+
+                        case "center":
+                        default:
+                            x = (pageWidth - imageWidth) / 2;
+                            y = (pageHeight - imageHeight) / 2;
+                            break;
+                    }
+
+                    copiedPage.drawImage(embeddedImage, {
+                        x,
+                        y,
+                        width: imageWidth,
+                        height: imageHeight,
+                        opacity: watermark.opacity / 100,
+                    });
+                }
             }
             newDoc.addPage(copiedPage);
         }
@@ -394,7 +523,17 @@ function Editor() {
                             updateSignaturePosition={updateSignaturePosition}
                             updateSignatureSize={updateSignatureSize}
                             deleteSignature={deleteSignature}
+                            watermarkType={watermarkType}
+                            watermarkText={watermarkText}
+                            watermarkImage={watermarkImage}
+                            watermarkOpacity={watermarkOpacity}
+                            watermarkPosition={watermarkPosition}
+                            watermarkApplyTo={watermarkApplyTo}
+                            applyWatermark={applyWatermark}
+                            watermarks={watermarks}
                             setWatermarks={setWatermarks}
+                            setSelectedWatermark={setSelectedWatermark}
+                            selectedWatermark={selectedWatermark}
                         />
                         <RightPanel
                             onRotateCW={rotateCW}
@@ -407,28 +546,20 @@ function Editor() {
                             currentPage={currentPage}
                             showSignaturePad={showSignaturePad}
                             setShowSignaturePad={setShowSignaturePad}
-                            watermarkType={watermarkType}
-                            setWatermarkType={setWatermarkType}
-                            watermarkText={watermarkText}
-                            setWatermarkText={setWatermarkText}
-                            watermarkImage={watermarkImage}
-                            setWatermarkImage={setWatermarkImage}
-                            watermarkOpacity={watermarkOpacity}
-                            setWatermarkOpacity={setWatermarkOpacity}
-                            watermarkPosition={watermarkPosition}
-                            setWatermarkPosition={setWatermarkPosition}
-                            watermarkApplyTo={watermarkApplyTo}
-                            setWatermarkApplyTo={setWatermarkApplyTo}
-                            onApplyWatermark={onApplyWatermark}
                             onRemoveWatermark={onRemoveWatermark}
-                            selectedWatermark={selectedWatermark}
                         />
                     </div>
                     {activeTool === "watermark" && (
                         <div className="watermark-options">
-
+                            <button
+                                type="button"
+                                className="watermark-close"
+                                onClick={() => setActiveTool("select")}
+                                aria-label="Close watermark options"
+                            >
+                                ✕
+                            </button>
                             <div className="watermark-type-selector">
-
                                 <button
                                     className={`watermark-type-btn ${watermarkType === "text" ? "active" : ""
                                         }`}
@@ -436,7 +567,6 @@ function Editor() {
                                 >
                                     📝 Text
                                 </button>
-
                                 <button
                                     className={`watermark-type-btn ${watermarkType === "image" ? "active" : ""
                                         }`}
@@ -446,8 +576,6 @@ function Editor() {
                                 </button>
 
                             </div>
-
-
                             {watermarkType === "text" && (
                                 <input
                                     type="text"
@@ -458,8 +586,6 @@ function Editor() {
                                     }
                                 />
                             )}
-
-
                             {watermarkType === "image" && (
                                 <input
                                     type="file"
@@ -469,35 +595,23 @@ function Editor() {
                                     }
                                 />
                             )}
-
-
-                            <label
-                                htmlFor="opacity-slider"
-                                className="opacity"
-                            >
-                                Opacity:
-                            </label>
-
-                            <input
-                                type="range"
-                                id="opacity-slider"
-                                min="0"
-                                max="100"
-                                value={watermarkOpacity}
-                                onChange={(e) =>
-                                    setWatermarkOpacity(Number(e.target.value))
-                                }
-                            />
-
-                            <span className="opacity-value">
-                                {watermarkOpacity}%
-                            </span>
-
-
+                            <div className="opacity-row">
+                                <label htmlFor="opacity-slider">Opacity</label>
+                                <input
+                                    type="range"
+                                    id="opacity-slider"
+                                    min="0"
+                                    max="100"
+                                    value={watermarkOpacity}
+                                    onChange={(e) =>
+                                        setWatermarkOpacity(Number(e.target.value))
+                                    }
+                                />
+                                <span className="opacity-value">{watermarkOpacity}%</span>
+                            </div>
                             <label htmlFor="watermark-position">
                                 Position:
                             </label>
-
                             <select
                                 id="watermark-position"
                                 value={watermarkPosition}
@@ -525,8 +639,6 @@ function Editor() {
                                     Bottom Right
                                 </option>
                             </select>
-
-
                             <select
                                 value={watermarkApplyTo}
                                 onChange={(e) =>
@@ -541,8 +653,6 @@ function Editor() {
                                     All Page
                                 </option>
                             </select>
-
-
                             <button
                                 className="rpanel-btn"
                                 onClick={onApplyWatermark}

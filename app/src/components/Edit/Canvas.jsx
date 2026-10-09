@@ -485,7 +485,6 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                     key={water.id}
                                     className="watermark"
                                     onClick={() => {
-                                        console.log("Clicked:", water.id);
                                         setSelectedWatermark(water.id);
                                     }}
                                     style={{
@@ -503,13 +502,13 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                         <span className="watermark-text">
                                             {water.text}
                                         </span>
-                                    ) : (
+                                    ) : water.type === "image" && water.image ? (
                                         <img
                                             src={URL.createObjectURL(water.image)}
                                             className="watermark-image"
-                                            alt=""
+                                            alt="watermark"
                                         />
-                                    )}
+                                    ) : null}
                                 </div>
                             ))
                         }

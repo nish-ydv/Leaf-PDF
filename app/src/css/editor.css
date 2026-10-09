@@ -739,88 +739,124 @@ button.tb-btn.danger:hover:not(:disabled) {
 
 .watermark-options {
     position: fixed;
-    right: 20px;
-    bottom: 70px;
-    width: 280px;
-    padding: 16px;
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    right: 24px;
+    bottom: 24px;
+    width: 340px;
+    max-width: calc(100vw - 48px);
     box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    padding: 20px;
+    background: var(--white);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
     z-index: 500;
 }
 
 .watermark-type-selector {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
 
 .watermark-type-btn {
-    flex: 1;
-    padding: 10px 12px;
-    border: 1px solid #d8d8d8;
-    border-radius: 10px;
-    background: #ffffff;
-    color: #444;
-    font-size: 14px;
+    min-width: 0;
+    min-height: 54px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
     font-weight: 600;
     cursor: pointer;
-    transition: all .2s ease;
-}
-
-.watermark-type-btn:hover {
-    border-color: #2d6a3f;
-    background: #f4faf6;
 }
 
 .watermark-type-btn.active {
-    background: #2d6a3f;
-    color: #fff;
-    border-color: #2d6a3f;
+    background: #356943;
+    border-color: #8dbb96;
+    color: white;
 }
 
 .watermark-options input[type="text"],
-.watermark-options input[type="file"],
 .watermark-options select {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d8d8d8;
-    border-radius: 10px;
-    background: #fff;
-    color: #222;
-    font-size: 14px;
-    outline: none;
+    min-height: 48px;
     box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--white);
+    color: inherit;
+    font: inherit;
 }
 
-.watermark-options input[type="text"]:focus,
-.watermark-options select:focus {
-    border-color: #2d6a3f;
-    box-shadow: 0 0 0 2px rgba(45, 106, 63, .15);
+.watermark-options select {
+    cursor: pointer;
 }
 
-.opacity-header {
-    display: flex;
-    justify-content: space-between;
+.watermark-options input[type="file"] {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--white);
+    color: inherit;
+    font-size: 14px;
+}
+
+.watermark-options input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: #356943;
+    color: white;
+    cursor: pointer;
+}
+
+.opacity-row {
+    display: grid;
+    grid-template-columns: auto minmax(50px, 1fr) 42px;
     align-items: center;
+    gap: 10px;
 }
 
-.opacity-value {
-    color: #2d6a3f;
-    font-size: 13px;
+.opacity-row label {
+    white-space: nowrap;
+    font-size: 14px;
     font-weight: 600;
 }
 
-.opacity-slider {
+.opacity-row input[type="range"] {
     width: 100%;
-    cursor: pointer;
-    accent-color: #2d6a3f;
+    min-width: 0;
+    margin: 0;
+    accent-color: #4b8b5b;
+}
+
+.opacity-value {
+    min-width: 42px;
+    text-align: right;
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #4b8b5b;
 }
 
 .watermark-options .rpanel-btn {
     width: 100%;
-    margin-top: 6px;
+    min-height: 48px;
+    justify-content: center;
+    border-radius: 12px;
+    font-weight: 600;
 }
 
 .watermark-options hr {
@@ -841,8 +877,12 @@ button.tb-btn.danger:hover:not(:disabled) {
 }
 
 .watermark-image {
-    max-width: 180px;
-    max-height: 180px;
+    max-width: 145px;
+    max-height: 145px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
 }
 
 .quality-selector {
@@ -873,6 +913,18 @@ button.tb-btn.danger:hover:not(:disabled) {
     border-color: var(--green);
     color: var(--forest);
     font-weight: 600;
+}
+.watermark-close {
+    align-self: flex-end;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
 }
 
 @media (max-width: 768px) {
@@ -969,21 +1021,67 @@ button.tb-btn.danger:hover:not(:disabled) {
         object-fit: contain;
     }
 
+
     .watermark-options {
         position: fixed;
         left: 10px;
         right: 10px;
-        bottom: 70px;
+        bottom: calc(60px + 54px + 10px + env(safe-area-inset-bottom, 0px));
         width: auto;
-        max-height: 45dvh;
+        max-width: 480px;
+        max-height: calc(100dvh - 60px - 54px - 100px - env(safe-area-inset-bottom, 0px));
         overflow-y: auto;
+        overscroll-behavior: contain;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
         padding: 14px;
         background: var(--white);
         border: 1px solid var(--border);
         border-radius: 14px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
         box-sizing: border-box;
         z-index: 500;
+    }
+
+    .watermark-type-btn {
+        min-height: 44px;
+        padding: 9px 6px;
+        font-size: 14px;
+    }
+
+    .watermark-options input[type="text"],
+    .watermark-options select {
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .watermark-options input[type="file"] {
+        font-size: 12px;
+        padding: 8px;
+    }
+
+    .watermark-options input[type="file"]::file-selector-button {
+        margin-right: 6px;
+        padding: 7px 9px;
+        font-size: 12px;
+    }
+
+    .opacity-row {
+        grid-template-columns: auto minmax(40px, 1fr) 38px;
+        gap: 8px;
+    }
+
+    .opacity-row label,
+    .opacity-value {
+        font-size: 13px;
+    }
+
+    .watermark-options .rpanel-btn {
+        min-height: 44px;
+        padding: 10px;
+        font-size: 14px;
     }
 
     .editor-toolbar {
