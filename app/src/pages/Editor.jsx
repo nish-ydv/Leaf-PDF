@@ -12,7 +12,6 @@ import SignaturePad from "../components/Edit/SignaturePad";
 import {
     arrayMove,
 } from "@dnd-kit/sortable"
-import { ServerCog } from "lucide-react";
 function Editor() {
     const [pdfDoc, setPdfDoc] = useState(null);
     const [pdfBytes, setPdfBytes] = useState(null);
@@ -38,6 +37,8 @@ function Editor() {
     const [applyWatermark, setApplyWatermark] = useState(0);
     const [selectedWatermark, setSelectedWatermark] = useState(null);
     const [watermarks, setWatermarks] = useState([]);
+    const [canvasScale, setCanvasScale] = useState(1.5)
+
     useEffect(() => {
         function handleKeyDown(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
@@ -278,8 +279,6 @@ function Editor() {
     }
     async function savePDF() {
         if (!pdfBytes) return;
-        const isMobile = window.innerWidth <= 768
-        const canvasScale = isMobile ? 1.2 : 1.5
         const srcDoc = await PDFDocument.load(pdfBytes);
         const newDoc = await PDFDocument.create();
         for (let i = 0; i < pages.length; i++) {
@@ -535,6 +534,7 @@ function Editor() {
                             setWatermarks={setWatermarks}
                             setSelectedWatermark={setSelectedWatermark}
                             selectedWatermark={selectedWatermark}
+                            onScaleChange={setCanvasScale}
                         />
                         <RightPanel
                             onRotateCW={rotateCW}

@@ -5,7 +5,7 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
     selectedTextBox, setSelectedTextBox, onUpdateFontSize, onDeleteTextBox, onUpdateColor, showColorPicker, setShowColorPicker,
     draggingId, setDraggingId, onUpdatePosition, duplicateTextBox, signatureImage, signatures, onAddSignature, selectedSignature, setSelectedSignature,
     updateSignaturePosition, updateSignatureSize, deleteSignature, watermarkType, watermarkText, watermarkImage, watermarkOpacity, watermarkPosition, watermarkApplyTo,
-    applyWatermark, watermarks, setWatermarks, setSelectedWatermark, selectedWatermark
+    applyWatermark, watermarks, setWatermarks, setSelectedWatermark, selectedWatermark, 
 }) {
     const canvasRef = useRef(null);
     const [pageInput, setPageInput] = useState(String(currentPage + 1));
