@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { HexColorPicker } from "react-colorful"
-
 function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxes, onAddTextBox, onUpdateTextBox, onSetActiveTool,
     selectedTextBox, setSelectedTextBox, onUpdateFontSize, onDeleteTextBox, onUpdateColor, showColorPicker, setShowColorPicker,
     draggingId, setDraggingId, onUpdatePosition, duplicateTextBox, signatureImage, signatures, onAddSignature, selectedSignature, setSelectedSignature,
     updateSignaturePosition, updateSignatureSize, deleteSignature, watermarkType, watermarkText, watermarkImage, watermarkOpacity, watermarkPosition, watermarkApplyTo,
-    applyWatermark, watermarks, setWatermarks, setSelectedWatermark, selectedWatermark, onScaleChange
+    applyWatermark, watermarks, setWatermarks, setSelectedWatermark, selectedWatermark, onScaleChange, onCanvasMetricsChange
 }) {
     const canvasRef = useRef(null);
     const [pageInput, setPageInput] = useState(String(currentPage + 1));
     useEffect(() => {
         let renderTask = null;
         async function render() {
+            if (!pdfDoc || !pages[currentPage] || pages[currentPage].deleted) return;
             const pdfPage = await pdfDoc.getPage(pages[currentPage].id);
             const rotation = pages[currentPage].rotation;
             const isMobile = window.innerWidth <= 768
@@ -26,33 +26,37 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
             renderTask = pdfPage.render({ canvasContext: ctx, viewport });
             await renderTask.promise;
             const rect = canvas.getBoundingClientRect();
-
             onCanvasMetricsChange?.({
+                pageIndex: currentPage,
                 renderWidth: canvas.width,
                 renderHeight: canvas.height,
                 displayWidth: rect.width,
                 displayHeight: rect.height,
+                viewportWidth: viewport.width,
+                viewportHeight: viewport.height,
+                transform: [...viewport.transform],
                 scale
             });
             setPageInput(String(currentPage + 1));
         }
-        render()
+        render().catch(error => {
+            if (error?.name !== "RenderingCancelledException") {
+                console.error("Failed to render PDF page:", error);
+            }
+        });
         return () => { if (renderTask) renderTask.cancel() }
     }, [pdfDoc, currentPage, pages[currentPage]?.rotation, pages[currentPage]?.id, onCanvasMetricsChange])
     useEffect(() => {
         if (applyWatermark === 0) return;
-
         applyWatermarkToCanvas();
     }, [applyWatermark]);
     function applyWatermarkToCanvas() {
         if (watermarkType === "text" && !watermarkText.trim()) {
             return;
         }
-
         if (watermarkType === "image" && !watermarkImage) {
             return;
         }
-
         const watermark = {
             id: crypto.randomUUID(),
             pageIndex: currentPage,
@@ -63,7 +67,6 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
             opacity: watermarkOpacity,
             position: watermarkPosition,
         };
-
         setWatermarks(prev => [...prev, watermark]);
     }
     function getWatermarkPosition(position) {
@@ -74,31 +77,26 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                     left: "50%",
                     transform: "translate(-50%, -50%)",
                 };
-
             case "top-left":
                 return {
                     top: "20px",
                     left: "20px",
                 };
-
             case "top-right":
                 return {
                     top: "20px",
                     right: "20px",
                 };
-
             case "bottom-left":
                 return {
                     bottom: "20px",
                     left: "20px",
                 };
-
             case "bottom-right":
                 return {
                     bottom: "20px",
                     right: "20px",
                 };
-
             default:
                 return {
                     top: "50%",
@@ -129,7 +127,6 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
         }
         if (activeTool === "signature") {
             onAddSignature({
-
                 id: crypto.randomUUID(),
                 pageIndex: currentPage,
                 x,
@@ -196,18 +193,13 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
     function startResize(e, sig) {
         e.preventDefault();
         e.stopPropagation();
-
         const startX = e.clientX;
-
         const startWidth = sig.width;
         const ratio = sig.height / sig.width;
-
         const MIN_SIGNATURE_WIDTH = 40;
         const MAX_SIGNATURE_WIDTH = 10000;
-
         function onMove(ev) {
             const deltaX = ev.clientX - startX;
-
             const newWidth = Math.min(
                 MAX_SIGNATURE_WIDTH,
                 Math.max(
@@ -215,19 +207,16 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                     startWidth + deltaX
                 )
             );
-
             updateSignatureSize(
                 sig.id,
                 newWidth,
                 newWidth * ratio
             );
         }
-
         function onUp() {
             window.removeEventListener("pointermove", onMove);
             window.removeEventListener("pointerup", onUp);
         }
-
         window.addEventListener("pointermove", onMove);
         window.addEventListener("pointerup", onUp);
     }
@@ -391,7 +380,6 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                                 e.key.toLowerCase() === "c"
                                             ) {
                                                 e.preventDefault();
-
                                                 if (selectedTextBox) {
                                                     duplicateTextBox(selectedTextBox);
                                                 }
@@ -438,7 +426,6 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                             touchAction: "none"
                                         }}
                                     />
-
                                     {selectedSignature === sig.id && (
                                         <>
                                             <button
@@ -463,7 +450,6 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                                             >
                                                 ×
                                             </button>
-
                                             <div
                                                 onPointerDown={(e) => startResize(e, sig)}
                                                 style={{
@@ -532,21 +518,18 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                 >
                     ←
                 </button>
-
                 <input
                     type="text"
                     inputMode="numeric"
                     value={pageInput}
                     onChange={(e) => {
                         const value = e.target.value;
-
                         if (/^\d*$/.test(value)) {
                             setPageInput(value);
                         }
                     }}
                     onBlur={() => {
                         const page = Number(pageInput);
-
                         if (
                             pageInput !== "" &&
                             page >= 1 &&
@@ -572,14 +555,12 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                         padding: '4px'
                     }}
                 />
-
                 <span style={{
                     color: 'rgba(255,255,255,0.5)',
                     fontSize: 13
                 }}>
                     / {pages.length}
                 </span>
-
                 <button
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === pages.length - 1}

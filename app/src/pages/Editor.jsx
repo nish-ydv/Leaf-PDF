@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PDFDocument, degrees, rgb } from "pdf-lib"
 import * as pdfjsLib from 'pdfjs-dist'
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
@@ -38,6 +38,14 @@ function Editor() {
     const [selectedWatermark, setSelectedWatermark] = useState(null);
     const [watermarks, setWatermarks] = useState([]);
     const [canvasScale, setCanvasScale] = useState(1.5)
+    const [canvasMetricsByPage, setCanvasMetricsByPage] = useState({})
+    const handleCanvasMetricsChange = useCallback((metrics) => {
+        if (metrics?.pageIndex == null) return;
+        setCanvasMetricsByPage(prev => ({
+            ...prev,
+            [metrics.pageIndex]: metrics,
+        }));
+    }, []);
     useEffect(() => {
         function handleKeyDown(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
@@ -138,7 +146,6 @@ function Editor() {
         const nextPage = pages.findIndex((p, i) => i > currentPage && !p.deleted)
         const prevPage = [...pages].reverse().findIndex((p, i) =>
             pages.length - 1 - i < currentPage && !p.deleted)
-
         if (nextPage !== -1) setCurrentPage(nextPage)
         else if (prevPage !== -1) setCurrentPage(pages.length - 1 - prevPage)
     }
@@ -239,11 +246,9 @@ function Editor() {
                 signatures,
             },
         ]);
-
         setSignatures(prev =>
             prev.filter(sig => sig.id !== id)
         );
-
         setSelectedSignature(null);
     }
     function hexToRgb(hex) {
@@ -278,71 +283,210 @@ function Editor() {
     }
     async function savePDF() {
         if (!pdfBytes) return;
-        const scale = canvasScale;
         const srcDoc = await PDFDocument.load(pdfBytes);
         const newDoc = await PDFDocument.create();
         for (let i = 0; i < pages.length; i++) {
             const pageMeta = pages[i];
             if (pageMeta.deleted) continue;
             const [copiedPage] = await newDoc.copyPages(srcDoc, [pageMeta.id - 1]);
-            if (pageMeta.rotation !== 0) copiedPage.setRotation(degrees(pageMeta.rotation));
+            if (pageMeta.rotation !== 0) {
+                copiedPage.setRotation(degrees(pageMeta.rotation));
+            }
             const pageWidth = copiedPage.getWidth();
             const pageHeight = copiedPage.getHeight();
-            // text boxes
-            textBoxes.filter(box => box.pageIndex === i && box.text.trim() !== "")
-                .forEach(box => {
-                    box.text.split("\n").forEach((line, index) => {
-                        copiedPage.drawText(line, {
-                            x: box.x / scale,
-                            y: pageHeight - (box.y / scale) - (index * (box.fontSize * 1.2 / scale)),
-                            size: box.fontSize / scale,
-                            color: hexToRgb(box.color),
+            const metrics = canvasMetricsByPage[i];
+            const pageTextBoxes = textBoxes.filter(
+                box => box.pageIndex === i
+            );
+            const pageSignatures = signatures.filter(
+                sig => sig.pageIndex === i
+            );
+            const pageWatermarks = watermarks.filter(
+                watermark =>
+                    watermark.allPages ||
+                    watermark.pageIndex === i
+            );
+            const metricsValid =
+                metrics?.displayWidth > 0 &&
+                metrics?.displayHeight > 0 &&
+                metrics?.renderWidth > 0 &&
+                metrics?.renderHeight > 0 &&
+                Array.isArray(metrics?.transform) &&
+                metrics.transform.length === 6 &&
+                metrics?.scale > 0;
+            const cssPointToPdf = (x, y) => {
+                const renderX = x * metrics.renderWidth / metrics.displayWidth;
+                const renderY = y * metrics.renderHeight / metrics.displayHeight;
+                const [a, b, c, d, e, f] = metrics.transform;
+                const det = a * d - b * c;
+                if (!det) return { x: 0, y: 0 };
+                const vx = renderX - e;
+                const vy = renderY - f;
+                return {
+                    x: (d * vx - c * vy) / det,
+                    y: (-b * vx + a * vy) / det,
+                };
+            };
+            if (metricsValid) {
+                pageTextBoxes
+                    .filter(box => box.text.trim() !== "")
+                    .forEach(box => {
+                        const lines = box.text.split("\n");
+                        const topLeft = cssPointToPdf(box.x, box.y);
+                        const fontSize =
+                            box.fontSize *
+                            (metrics.renderWidth / metrics.displayWidth) /
+                            metrics.scale;
+                        lines.forEach((line, index) => {
+                            copiedPage.drawText(line, {
+                                x: topLeft.x,
+                                y: topLeft.y - fontSize - index * fontSize * 1.2,
+                                size: fontSize,
+                                color: hexToRgb(box.color),
+                            });
                         });
                     });
-                });
-            for (const sig of signatures.filter(s => s.pageIndex === i)) {
-                const png = await newDoc.embedPng(sig.image);
-                copiedPage.drawImage(png, {
-                    x: sig.x / scale,
-                    y: pageHeight - (sig.y / scale) - (sig.height / scale),
-                    width: sig.width / scale,
-                    height: sig.height / scale,
-                });
+                for (const sig of pageSignatures) {
+                    if (!sig.image) continue;
+                    const png = await newDoc.embedPng(sig.image);
+                    const p1 = cssPointToPdf(sig.x, sig.y);
+                    const p2 = cssPointToPdf(sig.x + sig.width, sig.y);
+                    const p3 = cssPointToPdf(sig.x, sig.y + sig.height);
+                    const p4 = cssPointToPdf(sig.x + sig.width, sig.y + sig.height);
+                    const xs = [p1.x, p2.x, p3.x, p4.x];
+                    const ys = [p1.y, p2.y, p3.y, p4.y];
+                    copiedPage.drawImage(png, {
+                        x: Math.min(...xs),
+                        y: Math.min(...ys),
+                        width: Math.max(...xs) - Math.min(...xs),
+                        height: Math.max(...ys) - Math.min(...ys),
+                    });
+                }
+            } else {
+                const fallbackScale = canvasScale || 1;
+                pageTextBoxes
+                    .filter(box => box.text.trim() !== "")
+                    .forEach(box => {
+                        const fontSize = box.fontSize / fallbackScale;
+                        box.text.split("\n").forEach((line, index) => {
+                            copiedPage.drawText(line, {
+                                x: box.x / fallbackScale,
+                                y: pageHeight - box.y / fallbackScale - fontSize - index * fontSize * 1.2,
+                                size: fontSize,
+                                color: hexToRgb(box.color),
+                            });
+                        });
+                    });
+                for (const sig of pageSignatures) {
+                    if (!sig.image) continue;
+                    const png = await newDoc.embedPng(sig.image);
+                    copiedPage.drawImage(png, {
+                        x: sig.x / fallbackScale,
+                        y: pageHeight - (sig.y + sig.height) / fallbackScale,
+                        width: sig.width / fallbackScale,
+                        height: sig.height / fallbackScale,
+                    });
+                }
             }
-            for (const w of watermarks.filter(w => w.allPages || w.pageIndex === i)) {
-                if (w.type === "text") {
-                    const fontSize = 42 / scale;
-                    const textWidth = w.text.length * fontSize * 0.55;
-                    const margin = 20 / scale;
-                    let x, y;
-                    switch (w.position) {
-                        case "top-left": x = margin; y = pageHeight - margin - fontSize; break;
-                        case "top-right": x = pageWidth - margin - textWidth; y = pageHeight - margin - fontSize; break;
-                        case "bottom-left": x = margin; y = margin; break;
-                        case "bottom-right": x = pageWidth - margin - textWidth; y = margin; break;
-                        default: x = (pageWidth - textWidth) / 2; y = (pageHeight - fontSize) / 2;
+            for (const watermark of pageWatermarks) {
+                if (watermark.type === "text") {
+                    let x;
+                    let y;
+                    const fontSize = 42 / canvasScale;
+                    const textWidth =
+                        watermark.text.length *
+                        fontSize *
+                        0.55;
+                    const margin = 20 / canvasScale;
+                    switch (watermark.position) {
+                        case "top-left":
+                            x = margin;
+                            y = pageHeight - margin - fontSize;
+                            break;
+                        case "top-right":
+                            x = pageWidth - margin - textWidth;
+                            y = pageHeight - margin - fontSize;
+                            break;
+                        case "bottom-left":
+                            x = margin;
+                            y = margin;
+                            break;
+                        case "bottom-right":
+                            x = pageWidth - margin - textWidth;
+                            y = margin;
+                            break;
+                        case "center":
+                        default:
+                            x = (pageWidth - textWidth) / 2;
+                            y = (pageHeight - fontSize) / 2;
+                            break;
                     }
-                    copiedPage.drawText(w.text, { x, y, size: fontSize, color: rgb(0.27, 0.27, 0.27), opacity: w.opacity / 100 });
-                } else if (w.type === "image" && w.image) {
-                    const imageBytes = await w.image.arrayBuffer();
+                    copiedPage.drawText(watermark.text, {
+                        x,
+                        y,
+                        size: fontSize,
+                        color: rgb(0.27, 0.27, 0.27),
+                        opacity: watermark.opacity / 100,
+                    });
+                }
+                else if (watermark.type === "image" && watermark.image) {
+                    const imageBytes = await watermark.image.arrayBuffer();
                     let embeddedImage;
-                    if (w.image.type === "image/png") embeddedImage = await newDoc.embedPng(imageBytes);
-                    else if (w.image.type === "image/jpeg" || w.image.type === "image/jpg") embeddedImage = await newDoc.embedJpg(imageBytes);
-                    else continue;
-                    const maxSize = 145;
-                    const ps = Math.min(maxSize / embeddedImage.width, maxSize / embeddedImage.height, 1);
-                    const iw = (embeddedImage.width * ps) / scale;
-                    const ih = (embeddedImage.height * ps) / scale;
-                    const margin = 20 / scale;
-                    let x, y;
-                    switch (w.position) {
-                        case "top-left": x = margin; y = pageHeight - margin - ih; break;
-                        case "top-right": x = pageWidth - margin - iw; y = pageHeight - margin - ih; break;
-                        case "bottom-left": x = margin; y = margin; break;
-                        case "bottom-right": x = pageWidth - margin - iw; y = margin; break;
-                        default: x = (pageWidth - iw) / 2; y = (pageHeight - ih) / 2;
+                    if (watermark.image.type === "image/png") {
+                        embeddedImage = await newDoc.embedPng(imageBytes);
+                    } else if (
+                        watermark.image.type === "image/jpeg" ||
+                        watermark.image.type === "image/jpg"
+                    ) {
+                        embeddedImage = await newDoc.embedJpg(imageBytes);
+                    } else {
+                        console.warn(
+                            "Unsupported watermark image format:",
+                            watermark.image.type
+                        );
+                        continue;
                     }
-                    copiedPage.drawImage(embeddedImage, { x, y, width: iw, height: ih, opacity: w.opacity / 100 });
+                    const maxPreviewSize = 145;
+                    const previewScale = Math.min(
+                        maxPreviewSize / embeddedImage.width,
+                        maxPreviewSize / embeddedImage.height,
+                        1
+                    );
+                    const imageWidth = (embeddedImage.width * previewScale) / canvasScale;
+                    const imageHeight = (embeddedImage.height * previewScale) / canvasScale;
+                    const margin = 20 / canvasScale;
+                    let x;
+                    let y;
+                    switch (watermark.position) {
+                        case "top-left":
+                            x = margin;
+                            y = pageHeight - margin - imageHeight;
+                            break;
+                        case "top-right":
+                            x = pageWidth - margin - imageWidth;
+                            y = pageHeight - margin - imageHeight;
+                            break;
+                        case "bottom-left":
+                            x = margin;
+                            y = margin;
+                            break;
+                        case "bottom-right":
+                            x = pageWidth - margin - imageWidth;
+                            y = margin;
+                            break;
+                        case "center":
+                        default:
+                            x = (pageWidth - imageWidth) / 2;
+                            y = (pageHeight - imageHeight) / 2;
+                            break;
+                    }
+                    copiedPage.drawImage(embeddedImage, {
+                        x,
+                        y,
+                        width: imageWidth,
+                        height: imageHeight,
+                        opacity: watermark.opacity / 100,
+                    });
                 }
             }
             newDoc.addPage(copiedPage);
@@ -352,10 +496,14 @@ function Editor() {
         const url = URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
-        a.download = `${fileName.replace(/\.pdf$/i, '')}-edited.pdf`
-        a.style.display = 'none'
+        const baseName = fileName.replace(/\.pdf$/i, "");
+        a.download = `${baseName}-edited.pdf`
         document.body.appendChild(a)
-        setTimeout(() => { a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 100) }, 0)
+        a.click()
+        setTimeout(() => {
+            if (a.parentNode) a.parentNode.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 1500)
     }
     return (
         <div className="editor-root">
@@ -425,6 +573,7 @@ function Editor() {
                             setSelectedWatermark={setSelectedWatermark}
                             selectedWatermark={selectedWatermark}
                             onScaleChange={setCanvasScale}
+                            onCanvasMetricsChange={handleCanvasMetricsChange}
                         />
                         <RightPanel
                             onRotateCW={rotateCW}
@@ -465,7 +614,6 @@ function Editor() {
                                 >
                                     🖼 Image
                                 </button>
-
                             </div>
                             {watermarkType === "text" && (
                                 <input
@@ -513,19 +661,15 @@ function Editor() {
                                 <option value="center">
                                     Center
                                 </option>
-
                                 <option value="top-left">
                                     Top Left
                                 </option>
-
                                 <option value="top-right">
                                     Top Right
                                 </option>
-
                                 <option value="bottom-left">
                                     Bottom Left
                                 </option>
-
                                 <option value="bottom-right">
                                     Bottom Right
                                 </option>
@@ -539,7 +683,6 @@ function Editor() {
                                 <option value="current">
                                     Current Page
                                 </option>
-
                                 <option value="all">
                                     All Page
                                 </option>
@@ -550,7 +693,6 @@ function Editor() {
                             >
                                 💧 Apply Watermark
                             </button>
-
                         </div>
                     )}
                     {showSignaturePad && (
