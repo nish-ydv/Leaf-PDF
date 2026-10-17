@@ -25,11 +25,20 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
             const ctx = canvas.getContext('2d');
             renderTask = pdfPage.render({ canvasContext: ctx, viewport });
             await renderTask.promise;
+            const rect = canvas.getBoundingClientRect();
+
+            onCanvasMetricsChange?.({
+                renderWidth: canvas.width,
+                renderHeight: canvas.height,
+                displayWidth: rect.width,
+                displayHeight: rect.height,
+                scale
+            });
             setPageInput(String(currentPage + 1));
         }
         render()
         return () => { if (renderTask) renderTask.cancel() }
-    }, [pdfDoc, currentPage, pages[currentPage]?.rotation, pages[currentPage]?.id])
+    }, [pdfDoc, currentPage, pages[currentPage]?.rotation, pages[currentPage]?.id, onCanvasMetricsChange])
     useEffect(() => {
         if (applyWatermark === 0) return;
 

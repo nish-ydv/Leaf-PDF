@@ -38,7 +38,6 @@ function Editor() {
     const [selectedWatermark, setSelectedWatermark] = useState(null);
     const [watermarks, setWatermarks] = useState([]);
     const [canvasScale, setCanvasScale] = useState(1.5)
-
     useEffect(() => {
         function handleKeyDown(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
@@ -279,178 +278,71 @@ function Editor() {
     }
     async function savePDF() {
         if (!pdfBytes) return;
+        const scale = canvasScale;
         const srcDoc = await PDFDocument.load(pdfBytes);
         const newDoc = await PDFDocument.create();
         for (let i = 0; i < pages.length; i++) {
             const pageMeta = pages[i];
             if (pageMeta.deleted) continue;
             const [copiedPage] = await newDoc.copyPages(srcDoc, [pageMeta.id - 1]);
-            if (pageMeta.rotation !== 0) {
-                copiedPage.setRotation(degrees(pageMeta.rotation));
-            }
+            if (pageMeta.rotation !== 0) copiedPage.setRotation(degrees(pageMeta.rotation));
             const pageWidth = copiedPage.getWidth();
             const pageHeight = copiedPage.getHeight();
-            const pageTextBoxes = textBoxes.filter(
-                box => box.pageIndex === i
-            );
-            const pageSignatures = signatures.filter(
-                sig => sig.pageIndex === i
-            );
-            const pageWatermarks = watermarks.filter(
-                watermark =>
-                    watermark.allPages ||
-                    watermark.pageIndex === i
-            );
-            pageTextBoxes
-                .filter(box => box.text.trim() !== "")
+            // text boxes
+            textBoxes.filter(box => box.pageIndex === i && box.text.trim() !== "")
                 .forEach(box => {
-                    const lines = box.text.split("\n");
-
-                    lines.forEach((line, index) => {
+                    box.text.split("\n").forEach((line, index) => {
                         copiedPage.drawText(line, {
-                            x: box.x / canvasScale,
-                            y:
-                                pageHeight -
-                                (box.y / canvasScale) -
-                                (index * (box.fontSize * 1.2 / canvasScale)),
-                            size: box.fontSize / canvasScale,
+                            x: box.x / scale,
+                            y: pageHeight - (box.y / scale) - (index * (box.fontSize * 1.2 / scale)),
+                            size: box.fontSize / scale,
                             color: hexToRgb(box.color),
                         });
                     });
                 });
-            for (const sig of pageSignatures) {
+            for (const sig of signatures.filter(s => s.pageIndex === i)) {
                 const png = await newDoc.embedPng(sig.image);
                 copiedPage.drawImage(png, {
-                    x: sig.x / canvasScale,
-                    y:
-                        pageHeight -
-                        (sig.y / canvasScale) -
-                        (sig.height / canvasScale),
-                    width: sig.width / canvasScale,
-                    height: sig.height / canvasScale,
+                    x: sig.x / scale,
+                    y: pageHeight - (sig.y / scale) - (sig.height / scale),
+                    width: sig.width / scale,
+                    height: sig.height / scale,
                 });
             }
-            for (const watermark of pageWatermarks) {
-
-                if (watermark.type === "text") {
-
-                    let x;
-                    let y;
-
-                    const fontSize = 42 / canvasScale;
-
-                    const textWidth =
-                        watermark.text.length *
-                        fontSize *
-                        0.55;
-
-                    const margin = 20 / canvasScale;
-
-                    switch (watermark.position) {
-
-                        case "top-left":
-                            x = margin;
-                            y = pageHeight - margin - fontSize;
-                            break;
-
-                        case "top-right":
-                            x = pageWidth - margin - textWidth;
-                            y = pageHeight - margin - fontSize;
-                            break;
-
-                        case "bottom-left":
-                            x = margin;
-                            y = margin;
-                            break;
-
-                        case "bottom-right":
-                            x = pageWidth - margin - textWidth;
-                            y = margin;
-                            break;
-
-                        case "center":
-                        default:
-                            x = (pageWidth - textWidth) / 2;
-                            y = (pageHeight - fontSize) / 2;
-                            break;
+            for (const w of watermarks.filter(w => w.allPages || w.pageIndex === i)) {
+                if (w.type === "text") {
+                    const fontSize = 42 / scale;
+                    const textWidth = w.text.length * fontSize * 0.55;
+                    const margin = 20 / scale;
+                    let x, y;
+                    switch (w.position) {
+                        case "top-left": x = margin; y = pageHeight - margin - fontSize; break;
+                        case "top-right": x = pageWidth - margin - textWidth; y = pageHeight - margin - fontSize; break;
+                        case "bottom-left": x = margin; y = margin; break;
+                        case "bottom-right": x = pageWidth - margin - textWidth; y = margin; break;
+                        default: x = (pageWidth - textWidth) / 2; y = (pageHeight - fontSize) / 2;
                     }
-
-                    copiedPage.drawText(watermark.text, {
-                        x,
-                        y,
-                        size: fontSize,
-                        color: rgb(0.27, 0.27, 0.27),
-                        opacity: watermark.opacity / 100,
-                    });
-                }
-                else if (watermark.type === "image" && watermark.image) {
-                    const imageBytes = await watermark.image.arrayBuffer();
-
+                    copiedPage.drawText(w.text, { x, y, size: fontSize, color: rgb(0.27, 0.27, 0.27), opacity: w.opacity / 100 });
+                } else if (w.type === "image" && w.image) {
+                    const imageBytes = await w.image.arrayBuffer();
                     let embeddedImage;
-
-                    if (watermark.image.type === "image/png") {
-                        embeddedImage = await newDoc.embedPng(imageBytes);
-                    } else if (
-                        watermark.image.type === "image/jpeg" ||
-                        watermark.image.type === "image/jpg"
-                    ) {
-                        embeddedImage = await newDoc.embedJpg(imageBytes);
-                    } else {
-                        console.warn(
-                            "Unsupported watermark image format:",
-                            watermark.image.type
-                        );
-                        continue;
+                    if (w.image.type === "image/png") embeddedImage = await newDoc.embedPng(imageBytes);
+                    else if (w.image.type === "image/jpeg" || w.image.type === "image/jpg") embeddedImage = await newDoc.embedJpg(imageBytes);
+                    else continue;
+                    const maxSize = 145;
+                    const ps = Math.min(maxSize / embeddedImage.width, maxSize / embeddedImage.height, 1);
+                    const iw = (embeddedImage.width * ps) / scale;
+                    const ih = (embeddedImage.height * ps) / scale;
+                    const margin = 20 / scale;
+                    let x, y;
+                    switch (w.position) {
+                        case "top-left": x = margin; y = pageHeight - margin - ih; break;
+                        case "top-right": x = pageWidth - margin - iw; y = pageHeight - margin - ih; break;
+                        case "bottom-left": x = margin; y = margin; break;
+                        case "bottom-right": x = pageWidth - margin - iw; y = margin; break;
+                        default: x = (pageWidth - iw) / 2; y = (pageHeight - ih) / 2;
                     }
-
-                    const maxPreviewSize = 145;
-                    const previewScale = Math.min(
-                        maxPreviewSize / embeddedImage.width,
-                        maxPreviewSize / embeddedImage.height,
-                        1
-                    );
-
-                    const imageWidth = (embeddedImage.width * previewScale) / canvasScale;
-                    const imageHeight = (embeddedImage.height * previewScale) / canvasScale;
-                    const margin = 20 / canvasScale;
-                    let x;
-                    let y;
-
-                    switch (watermark.position) {
-                        case "top-left":
-                            x = margin;
-                            y = pageHeight - margin - imageHeight;
-                            break;
-
-                        case "top-right":
-                            x = pageWidth - margin - imageWidth;
-                            y = pageHeight - margin - imageHeight;
-                            break;
-
-                        case "bottom-left":
-                            x = margin;
-                            y = margin;
-                            break;
-
-                        case "bottom-right":
-                            x = pageWidth - margin - imageWidth;
-                            y = margin;
-                            break;
-
-                        case "center":
-                        default:
-                            x = (pageWidth - imageWidth) / 2;
-                            y = (pageHeight - imageHeight) / 2;
-                            break;
-                    }
-
-                    copiedPage.drawImage(embeddedImage, {
-                        x,
-                        y,
-                        width: imageWidth,
-                        height: imageHeight,
-                        opacity: watermark.opacity / 100,
-                    });
+                    copiedPage.drawImage(embeddedImage, { x, y, width: iw, height: ih, opacity: w.opacity / 100 });
                 }
             }
             newDoc.addPage(copiedPage);
@@ -460,12 +352,10 @@ function Editor() {
         const url = URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
-        const baseName = fileName.replace(/\.pdf$/i, "");
-        a.download = `${baseName}-edited.pdf`
+        a.download = `${fileName.replace(/\.pdf$/i, '')}-edited.pdf`
+        a.style.display = 'none'
         document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+        setTimeout(() => { a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 100) }, 0)
     }
     return (
         <div className="editor-root">
