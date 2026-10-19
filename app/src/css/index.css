@@ -130,59 +130,6 @@
     z-index: 2;
 }
 
-.hero-leaves {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-.leaf {
-    position: absolute;
-    pointer-events: none;
-    animation: floatLeaf 12s ease-in-out infinite;
-    width: 350px;
-    opacity: 0.25;
-    filter: blur(2px);
-}
-
-.leaf1 {
-    top: 5%;
-    left: -5%;
-    transform: rotate(-15deg);
-}
-
-.leaf2 {
-    bottom: 10%;
-    right: 5%;
-    transform: rotate(140deg);
-    animation-duration: 16s;
-}
-
-.leaf3 {
-    top: 40%;
-    left: 10%;
-    width: 250px;
-    transform: rotate(20deg);
-    animation-delay: -3s;
-}
-
-@keyframes floatLeaf {
-
-    0%,
-    100% {
-        transform: translateY(0px) rotate(inherit);
-    }
-
-    50% {
-        transform: translateY(-30px) rotate(inherit);
-    }
-}
-
 @media (max-width: 768px) {
     .leaf {
         width: 150px;

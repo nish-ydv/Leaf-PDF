@@ -70,33 +70,22 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
         setWatermarks(prev => [...prev, watermark]);
     }
     function getWatermarkPosition(position) {
+        const margin = 24;
+
         switch (position) {
-            case "center":
-                return {
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                };
             case "top-left":
-                return {
-                    top: "20px",
-                    left: "20px",
-                };
+                return { top: margin, left: margin };
+
             case "top-right":
-                return {
-                    top: "20px",
-                    right: "20px",
-                };
+                return { top: margin, right: margin };
+
             case "bottom-left":
-                return {
-                    bottom: "20px",
-                    left: "20px",
-                };
+                return { bottom: margin, left: margin };
+
             case "bottom-right":
-                return {
-                    bottom: "20px",
-                    right: "20px",
-                };
+                return { bottom: margin, right: margin };
+
+            case "center":
             default:
                 return {
                     top: "50%",
@@ -226,7 +215,12 @@ function Canvas({ pdfDoc, pages, currentPage, onPageChange, activeTool, textBoxe
                 {pages[currentPage]?.deleted ? (
                     <p>Page deleted — undo to restore</p>
                 ) : (
-                    <div style={{ position: 'relative', display: 'inline-block', cursor: activeTool === 'text' ? 'text' : 'default' }}
+                    <div style={{ 
+                        position: 'relative', 
+                        display: 'inline-block', 
+                        lineHeight:0,
+                        cursor: activeTool === 'text' ? 'text' : 'default' 
+                    }}
                         onClick={handleCanvasClick}>
                         <canvas ref={canvasRef} />
                         {textBoxes

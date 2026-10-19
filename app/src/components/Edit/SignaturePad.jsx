@@ -9,7 +9,6 @@ function SignaturePad({ onClose, signatureImage, setSignatureImage, setActiveToo
     function saveSignature() {
         if (sigCanvas.current.isEmpty()) return;
         const image = sigCanvas.current.toDataURL("image/png");
-        console.log(image);
         setSignatureImage(image);
         sigCanvas.current.clear()
         setActiveTool("signature")

@@ -27,11 +27,6 @@ function UploadZone({ onFile }) {
     function handleChange(e) { validateFile(e.target.files[0]) }
     return (
         <div className="upload-overlay">
-            <div className="hero-leaves">
-                <img src="/resources/leaf.svg" className="leaf leaf1" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf2" alt="" />
-                <img src="/resources/leaf.svg" className="leaf leaf3" alt="" />
-            </div>
             <div
                 className={`upload-zone${isDragging ? ' drag-over' : ''}`}
                 onDragOver={handleDragOver}
